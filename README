@@ -122,9 +122,9 @@
 
   Example:
   
-  use Geo::Weather;
+  use Geo::WeatherNWS;
 
-  my $Report=Geo::Weather::new();
+  my $Report=Geo::WeatherNWS::new();
   $Report->getreport('khao');		# For Hamilton, OH
 
   print "Temperature is $Report->{temperature_f} degrees\n";

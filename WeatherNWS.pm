@@ -5,7 +5,12 @@ package Geo::WeatherNWS;
 # Package Name:  Get Observations from NWS (Geo::WeatherNWS)
 #
 # Last Modified:  18 December 2001 - Prepared for CPAN - Marc Slagle
+#		  16 January 2002  - Adding dump code - Marc
 #
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# We need these
 #------------------------------------------------------------------------------
 
 require 5.005_62;
@@ -15,7 +20,15 @@ use Net::FTP;
 use IO::Handle;
 use POSIX;
 
-our $VERSION = '0.17';
+#------------------------------------------------------------------------------
+# Version
+#------------------------------------------------------------------------------
+
+our $VERSION = '0.18';
+
+#------------------------------------------------------------------------------
+# Lets create a new self
+#------------------------------------------------------------------------------
 
 sub new
 {
@@ -25,6 +38,10 @@ sub new
         bless $Self;
         return $Self;
 }
+
+#------------------------------------------------------------------------------
+# Here we get to FTP to the NWS and get the data
+#------------------------------------------------------------------------------
 
 sub getreport
 {
@@ -222,6 +239,17 @@ sub getreport
 		elsif ($Line =~ /([0-9]SM)$/)
 		{
 			$Line=~tr/[A-Z]//d;
+
+#------------------------------------------------------------------------------
+#			Some stations were reporting fractions for this value
+#------------------------------------------------------------------------------
+
+			if ($Line =~ /\//)
+			{
+				my @Splitter=split(/\//,$Line);
+				$Line=$Splitter[0]/$Splitter[1];
+			}
+
 			my $Viskm=int($Line*1.6);
 			$Self->{visibility_mi}="$Line";
 			$Self->{visibility_km}="$Viskm";
@@ -271,15 +299,19 @@ sub getreport
 			{
 				if (!$Self->{conditions1})
 				{
-
+				my ($Block1,$Block2);
 				my $Modifier=substr($Line,0,1);
 				my $Block1t=substr($Line,1,2);
 				my $Block2t=substr($Line,3,4);
 				
-				my $Block1=$Converter{$Block1t};
+				$Block1=$Converter{$Block1t};
 				$Self->{conditions1}="$Block1";
-				my $Block2=$Converter{$Block2t};
-				$Self->{conditions2}="$Block2";
+
+				if ($Block2t)
+				{
+					$Block2=$Converter{$Block2t};
+					$Self->{conditions2}="$Block2";
+				}
 
 				if ($Modifier =~ /^\-/)
 				{
@@ -319,16 +351,17 @@ sub getreport
 			{
 				if (!$Self->{conditions1})
 				{
+				my ($Block1,$Block2);
 				my $Block1t=substr($Line,0,2);
 				my $Block2t=substr($Line,2,4);
 
-				my $Block1=$Converter{$Block1t};
+				$Block1=$Converter{$Block1t};
 				$Self->{conditions1}="$Block1";
-				my $Block2=$Converter{$Block2t};
-				$Self->{conditions2}="$Block2";
 
 				if ($Block2)
 				{
+					$Block2=$Converter{$Block2t};
+					$Self->{conditions2}="$Block2";
 					$Block1="$Block1 $Block2";
 				}
 				

@@ -1,6 +1,10 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
-0.01  Tue Dec 18 11:46:52 2001
+0.18  Wed Jan 23 21:26:08 2002
+	- added support for fractional visibility readings
+	- fixed "uninitialized value" bugs
+
+0.17  Tue Dec 18 11:46:52 2001
 	- original version; created by h2xs 1.20 with options
 		-XA -n Geo::WeatherNWS
 
