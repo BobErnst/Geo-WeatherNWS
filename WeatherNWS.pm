@@ -5,7 +5,7 @@ package Geo::WeatherNWS;
 # Package Name:  Get Observations from NWS (Geo::WeatherNWS)
 #
 # Last Modified:  18 December 2001 - Prepared for CPAN - Marc Slagle
-#		  16 January 2002  - Adding dump code - Marc
+#		  24 February 2002 - Adding server/error code - Marc
 #
 #------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -35,8 +35,50 @@ sub new
         my $Proto=shift;
         my $Class=ref($Proto) || $Proto;
         my $Self={};
+
+	$Self->{servername}="weather.noaa.gov";
+	$Self->{username}="anonymous";
+	$Self->{password}='weather@cpan.org';
+	$Self->{directory}="/data/observations/metar/stations";
+
         bless $Self;
         return $Self;
+}
+
+#------------------------------------------------------------------------------
+# Adding ability to edit server/user/directory at runtime...
+#------------------------------------------------------------------------------
+
+sub setservername
+{
+	my $Self=shift;
+	my $Servername=shift;
+	$Self->{servername}=$Servername;
+	return $Self;
+}
+
+sub setusername
+{
+	my $Self=shift;
+	my $User=shift;
+	$Self->{username}=$User;
+	return $Self;
+}
+
+sub setpassword
+{
+	my $Self=shift;
+	my $Pass=shift;
+	$Self->{password}=$Pass;
+	return $Self;
+}
+
+sub setdirectory
+{
+	my $Self=shift;
+	my $Dir=shift;
+	$Self->{directory}=$Dir;
+	return $Self;
 }
 
 #------------------------------------------------------------------------------
@@ -48,23 +90,50 @@ sub getreport
         my $Self=shift;
 	my $Station=shift;
 
+	$Self->{error}="0";
 	my $Tmpfile=POSIX::tmpnam();
 	my $Code=uc($Station);
 	my @Cloudlevels;
 
 	if (!$Code)
 	{
+		$Self->{error}="1";
+		$Self->{errortext}="No Station Code Entered\n";
 		return $Self;
 	}
 
-	my $Ftp=Net::FTP->new("weather.noaa.gov", Debug => 0);
-	$Ftp->login("anonymous",'perl@cpan.org');
-	$Ftp->cwd("/data/observations/metar/stations");
-	my $Rcode=$Ftp->get("$Code.TXT","$Tmpfile");
+	my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0);
+	$Ftp->login("$Self->{username}","$Self->{password}");
+	my $Rcode=$Ftp->code();
+	my $Message=$Ftp->message();
+
+	if ($Rcode =~ /^[45]/)
+	{
+		$Self->{error}="$Rcode";
+		$Self->{errortext}="$Message";
+		return $Self;
+	}
+
+	$Ftp->cwd("$Self->{directory}");
+	$Rcode=$Ftp->code();
+	$Message=$Ftp->message();
+
+	if ($Rcode =~ /^[45]/)
+	{
+		$Self->{error}="$Rcode";
+		$Self->{errortext}="$Message";
+		return $Self;
+	}
+
+	$Rcode=$Ftp->get("$Code.TXT","$Tmpfile");
+	$Rcode=$Ftp->code();
+	$Message=$Ftp->message();
 	$Ftp->quit;
 
-	if (!$Rcode)
+	if ($Rcode =~ /^[45]/)
 	{
+		$Self->{error}="$Rcode";
+		$Self->{errortext}="$Message";
 		return $Self;
 	}
 
@@ -674,16 +743,44 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   use Geo::WeatherNWS;
 
   my $Report=Geo::WeatherNWS::new();
-  $Report=>getreport('kcvg');		# kcvg is the station code for 
+
+  # Optionally set the server/user/directory of the reports
+
+  $Report->setservername("weather.noaa.gov");
+  $Report->setusername("anonymous");
+  $Report->setpassword('emailaddress@yourdomain.com');
+  $Report->setdirectory("/data/observations/metar/stations");
+
+  $Report->getreport('kcvg');		# kcvg is the station code for 
 					# Cincinnati, OH
+
+  # Check for errors
+
+  if ($Report->{error})
+  {
+    print "$Report->{errortext}\n";
+  }
 
 =head1 DESCRIPTION
 
   This module is an early release of what will hopefully be a robust way
   for Perl Programmers to get current weather data from the National Weather
-  Service.  The only part implemented so far is the getreport routine, which
-  retrieves the most current METAR formatted station report and decodes it
-  into a hash that you can use.
+  Service.  Some new functions have been added since the 0.18 release.  
+  Instead of having to use the built-in server/user/password/directory that
+  the module used to use, you can provide your own.  This way if you have 
+  access to a mirror server of the data, you can specify the servername,
+  account information and directory where the files exist.  If you dont have
+  access to a mirror, then you dont have to specify anything.  The old server,
+  etc., are still automagically selected.
+
+  Also new in this release is that the getreport function now returns an
+  error code and the FTP error message if anything goes wrong.  Before this
+  was added, if the server was busy or the stations text file was missing
+  you couldn't tell what happened.
+
+  And, same as previous releases, the getreport function retrieves the most 
+  current METAR formatted station report and decodes it into a hash that you 
+  can use.
 
   I thought this would be a useful module, considering that a lot of sites
   today seem to get their weather data directly through other sites via http.
@@ -692,8 +789,7 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   all you need is a four-letter station code to get the most recent weather
   observations.  If you do not know what the station code is for your area,
   check the site at http://205.156.54.206/oso/siteloc.shtml to start your 
-  search.  The information is out there, and I should include a list of 
-  station codes in the next release.
+  search. 
 
   Since this module uses the NWS METAR Observations, you can get weather
   reports from anywhere in the world that has a four-letter station code.
@@ -701,11 +797,33 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   This module uses the POSIX and Net::FTP modules, so you'll have to make 
   sure that everything is set up with them before you can use the module. 
   
+  To begin:
+ 
+  use Geo::WeatherNWS;
   my $Report=Geo::WeatherNWS::new();
+
+  If you want to change the server and user information, do it now.  This
+  step is not required.  If you dont call these functions, the module uses
+  the defaults.
+
+  $Report->setservername("weather.noaa.gov");
+  $Report->setusername("anonymous");
+  $Report->setpassword('emailaddress@yourdomain.com');
+  $Report->setdirectory("/data/observations/metar/stations");
+
   $Report->getreport('station');
 
-  You can now use the $Report hashref to display the information.
-  Some of the returned info is about the report itself, such as:
+  Now you can check to see if there was an error, and what the text of the
+  error message was.
+
+  if ($Report->{error})
+  {
+    print "$Report->{errortext}";
+  }
+  
+  Assuming there was no error, you can now use the $Report hashref to display 
+  the information.  Some of the returned info is about the report itself, 
+  such as:
 
   $Report->{day}          	  # Report Date
   $Report->{time}         	  # Report Time
