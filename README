@@ -1,0 +1,145 @@
+  Geo::WeatherNWS - A simple way to get current weather data from the NWS.
+
+  Installation:
+
+  perl Makefile.PL
+  make
+  make test
+  make install
+
+  Requirements:
+
+  Net::FTP
+
+  Usage:
+
+  use Geo::WeatherNWS;
+
+  my $Report=Geo::WeatherNWS::new();
+  $Report=>getreport('kcvg');		# kcvg is the station code for 
+					# Cincinnati, OH
+  Description:
+
+  This module is an early release of what will hopefully be a robust way
+  for Perl Programmers to get current weather data from the National Weather
+  Service.  The only part implemented so far is the getreport routine, which
+  retrieves the most current METAR formatted station report and decodes it
+  into a hash that you can use.
+
+  I thought this would be a useful module, considering that a lot of sites
+  today seem to get their weather data directly through other sites via http.
+  When the site you are getting your weather data from changes format, then 
+  you end up having to re-code your parsing program.  With the weather module,
+  all you need is a four-letter station code to get the most recent weather
+  observations.  If you do not know what the station code is for your area,
+  check the site at http://205.156.54.206/oso/siteloc.shtml to start your 
+  search.  The information is out there, and I should include a list of 
+  station codes in the next release.
+
+  Since this module uses the NWS METAR Observations, you can get weather
+  reports from anywhere in the world that has a four-letter station code.
+
+  This module uses the POSIX and Net::FTP modules, so you'll have to make 
+  sure that everything is set up with them before you can use the module. 
+  
+  my $Report=Geo::WeatherNWS::new();
+  $Report->getreport('station');
+
+  You can now use the $Report hashref to display the information.
+  Some of the returned info is about the report itself, such as:
+
+  $Report->{day}          	  # Report Date
+  $Report->{time}         	  # Report Time
+  $Report->{station_type}         # Station Type (auto or manual)
+  $Report->{obs}          	  # The Observation Text (encoded)
+  $Report->{code}         	  # The Station Code
+
+  These are the returned values specific tothe conditions:
+
+  $Report->{conditionstext} 	  # Conditions text
+  $Report->{conditions1}	  # First Part
+  $Report->{conditions2}	  # Second Part
+
+  These are the returned values specific to wind:
+
+  $Report->{windspeedmph}         # Wind Speed (in mph)
+  $Report->{windspeedkts}         # Wind Speed (in kts)
+  $Report->{winddir}              # Wind Direction (in degrees)
+  $Report->{winddirtext}          # Wind Direction (text version)
+  $Report->{windgustmph}          # Wind Gusts (mph)
+  $Report->{windgustkts}          # Wind Gusts (kts)
+
+  These are the retunred values specific to temperature and 
+  humidity:
+
+  $Report->{temperature_f}        # Temperature (degrees f)
+  $Report->{temperature_c}        # Temperature (degrees c)
+  $Report->{dewpoint_f}           # Dewpoint (degrees f)
+  $Report->{dewpoint_c}           # Dewpoint (degrees c)
+  $Report->{relative_humidity}    # Relative Humidity (in percent)
+  $Report->{windchill_f}          # Wind Chill (degrees f)
+  $Report->{windchill_c}          # Wind Chill (degrees c)
+  $Report->{heat_index_f}         # Heat Index (degrees f)
+  $Report->{heat_index_c}         # Heat Index (degrees c)
+
+  Note: Due to the formulas used to get the heat index and windchill, 
+  sometimes these values are a little strange.  A check to see if the heat 
+  index is above the temperature before displaying it would be a good thing 
+  for you to do.  You probably don't want to display the winchill unless 
+  its cold either.
+
+  These are the return values for clouds and visibility:
+
+  $Report->{cloudcover}           # Cloudcover (text)
+  $Report->{cloudlevel_arrayref}  # Arrayref holding all cloud levels
+  $Report->{visibility_mi}        # Visibility (miles)
+  $Report->{visibility_km}        # Visibility (kilometers)
+
+  These are the return values for air pressure:
+
+  $Report->{pressure_inhg}        # Air Pressure (in mercury)
+  $Report->{pressure_mmhg}        # Air Pressure (in mm mercury)
+  $Report->{pressure_kgcm}        # Air Pressure (kg per cm)
+  $Report->{pressure_mb}          # Air Pressure (mb)
+  $Report->{pressure_lbin}        # Air Pressure (psi)
+
+  Other values MAY be returned, but only if there are remarks appended
+  to the observations.  This section of the code is more experimental,
+  and these names could change in future releases.
+
+  $Report->{remark_arrayref}      # Arrayref holding all remarks
+  $Report->{ptemerature}          # Precise Tepmerature Reading
+  $Report->{storm}		  # Thunderstorm stats
+  $Report->{slp_inhg}             # Air Pressure at Sea Level (in mercury)
+  $Report->{slp_mmhg}             # Air Pressure at Sea Level (mm mercury)
+  $Report->{slp_kgcm}             # Air Pressure at Sea Level (kg per cm)
+  $Report->{slp_lbin}             # Air Pressure at Sea Level (psi)
+  $Report->{slp_mb}               # Air Pressure at Sea Level (mb)
+
+  Another note:  Do not be surprised if sometimes the values come back
+  empty. The weather stations are not required to place all of the 
+  information in the reports.
+
+  Example:
+  
+  use Geo::Weather;
+
+  my $Report=Geo::Weather::new();
+  $Report->getreport('khao');		# For Hamilton, OH
+
+  print "Temperature is $Report->{temperature_f} degrees\n";
+  print "Air Pressure is $Report->{pressure_inhg} inches\n";
+
+  # If it isnt raining, etc - just print cloud cover
+
+  if ($Report->{conditionstext})
+  {
+  	print "Conditions: $Report->{conditionstext}\n";
+  }
+  else
+  {	
+  	print "Conditions: $Report->{cloudcover}\n";
+  }
+
+  Author:
+  Marc Slagle - marc.slagle@fulkertconsulting.com
