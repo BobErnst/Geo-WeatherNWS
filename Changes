@@ -1,5 +1,9 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+1.03  Sun Feb 9 13:52:00 2003
+	- added the getreporthttp call to get the metar data from the nws 
+	  website at http://weather.noaa.gov/cgi-bin/mgetmetar.pl
+
 1.02  Sun Feb 9 12:45:00 2003
 	- changed ftp connection to passive to work behind firewalls
 	- added automated station code provided by Jim Metzger

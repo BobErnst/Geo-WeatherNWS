@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -93,6 +93,15 @@ sub settemplatefile
 # Here we get to FTP to the NWS and get the data
 #------------------------------------------------------------------------------
 
+sub getreporthttp
+{
+	my $Self=shift;
+	my $Code=shift;
+	$Self->{http}="http://weather.noaa.gov/cgi-bin/mgetmetar.pl?cccc=$Code";
+	my $Ret=&getreport($Self,$Code);
+	return $Ret;
+}
+
 sub getreport
 {
         my $Self=shift;
@@ -109,53 +118,80 @@ sub getreport
 		return $Self;
 	}
 
-#	Some users needed this for firewalls...
-	my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0, Passive => 1);
-#	my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0);
-	$Ftp->login("$Self->{username}","$Self->{password}");
-	my $Rcode=$Ftp->code();
-	my $Message=$Ftp->message();
 
-	if ($Rcode =~ /^[45]/)
+	if ($Self->{http})
 	{
-		$Self->{error}="$Rcode";
-		$Self->{errortext}="$Message";
-		return $Self;
+         	use LWP::UserAgent;
+		my $Ua=LWP::UserAgent->new();
+		$Ua->agent("Geo::WeatherNWS 1.03");
+
+		my $Req=HTTP::Request->new(GET => "$Self->{http}");
+		$Req->content_type('application/x-www-form-urlencoded');
+		my $Res=$Ua->request($Req);
+		
+		if ($Res->is_success)
+		{
+			my @Lines=split(/\n/,$Res->content);
+			foreach my $Line (@Lines)
+			{
+				if ($Line =~ /^([A-Z][A-Z][A-Z][A-Z])/)
+				{
+					$Self->{obs}=$Line;
+					last;
+				}
+			}
+		}
 	}
-
-	$Ftp->cwd("$Self->{directory}");
-	$Rcode=$Ftp->code();
-	$Message=$Ftp->message();
-
-	if ($Rcode =~ /^[45]/)
+	else
 	{
-		$Self->{error}="$Rcode";
-		$Self->{errortext}="$Message";
-		return $Self;
-	}
+#		Some users needed this for firewalls...
+		my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0, Passive => 1);
+#		my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0);
+		$Ftp->login("$Self->{username}","$Self->{password}");
+		my $Rcode=$Ftp->code();
+		my $Message=$Ftp->message();
 
-	$Rcode=$Ftp->get("$Code.TXT","$Tmpfile");
-	$Rcode=$Ftp->code();
-	$Message=$Ftp->message();
-	$Ftp->quit;
+		if ($Rcode =~ /^[45]/)
+		{
+			$Self->{error}="$Rcode";
+			$Self->{errortext}="$Message";
+			return $Self;
+		}
+	
+		$Ftp->cwd("$Self->{directory}");
+		$Rcode=$Ftp->code();
+		$Message=$Ftp->message();
 
-	if ($Rcode =~ /^[45]/)
-	{
-		$Self->{error}="$Rcode";
-		$Self->{errortext}="$Message";
-		return $Self;
-	}
+		if ($Rcode =~ /^[45]/)
+		{
+			$Self->{error}="$Rcode";
+			$Self->{errortext}="$Message";
+			return $Self;
+		}
 
-	local $/;
-	local *F;
-	open(F, "< $Tmpfile\0");
-	my $Data=<F>;
-	close(F);
-	$Data=~tr/\n/ /d;
+		$Rcode=$Ftp->get("$Code.TXT","$Tmpfile");
+		$Rcode=$Ftp->code();
+		$Message=$Ftp->message();
+		$Ftp->quit;
 
-	$Self->{obs}="$Data";
-	unlink("$Tmpfile");
+		if ($Rcode =~ /^[45]/)
+		{
+			$Self->{error}="$Rcode";
+			$Self->{errortext}="$Message";
+			return $Self;
+		}
 
+		local $/;
+		local *F;
+		open(F, "< $Tmpfile\0");
+		my $Data=<F>;
+		close(F);
+		$Data=~tr/\n/ /d;
+	
+		$Self->{obs}="$Data";
+		unlink("$Tmpfile");
+	}	
+		
 	$Self->decode();
 	return $Self;
 }
@@ -848,6 +884,10 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   $Report->getreport('kcvg');		# kcvg is the station code for 
 					# Cincinnati, OH
 
+  $Report->getreporthttp('kcvg');	# same as before, but use the http
+					# method to the script at 
+					# weather.noaa.gov
+
   # Check for errors
 
   if ($Report->{error})
@@ -862,9 +902,8 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
 
 =head1 DESCRIPTION
 
-  New for version 1.01/0.23:  New WCT (Wind Chill Temperature) index calulation.
-  Based on the new NWS formula released For the 2001/2002 Winter.  It's a bit
-  late (July 2002) but its there.
+  New for version 1.03:  the getreporthttp call now calls the script on the 
+  weather.noaa.gov site for those who cant FTP through firewalls.
 
   This module is an early release of what will hopefully be a robust way
   for Perl Programmers to get current weather data from the National Weather
