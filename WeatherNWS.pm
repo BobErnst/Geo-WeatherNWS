@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -566,7 +566,11 @@ sub decode
 			my $Heati=int(-42.379 + 2.04901523*$F + 10.14333127*$rh - 0.22475541*$F*$rh - 6.83783e-03*$F**2 - 5.481717e-02*$rh**2 + 1.22874e-03*$F**2*$rh + 8.5282e-04*$F*$rh**2 - 1.99e-06*$F**2*$rh**2);
 			my $Heatic=int(5/9 * ($Heati -32)); 
 
-			my $Windc=int(0.0817*(3.71*$Self->{windspeedmph}**0.5 + 5.81 - 0.25*$Self->{windspeedmph})*($F - 91.4) + 91.4);
+#			Old Formula
+#			my $Windc=int(0.0817*(3.71*$Self->{windspeedmph}**0.5 + 5.81 - 0.25*$Self->{windspeedmph})*($F - 91.4) + 91.4);
+#			New Formula
+
+			my $Windc=int(35.74 + (0.6215 * $F) - (35.75 * ($Self->{windspeedmph}**0.16)) + ((0.4275*$F)*($Self->{windspeedmph}**0.16)));
 			my $Windcc=int(5/9 * ($Windc - 32));
 
 			$Self->{temperature_c}=$Temperature;
@@ -856,6 +860,10 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
 
 =head1 DESCRIPTION
 
+  New for version 0.23:  New WCT (Wind Chill Temperature) index calulation.
+  Based on the new NWS formula released For the 2001/2002 Winter.  It's a bit
+  late (July 2002) but its there for the coming winter.
+
   This module is an early release of what will hopefully be a robust way
   for Perl Programmers to get current weather data from the National Weather
   Service.  Some new functions have been added since the 0.18 release.  
@@ -980,7 +988,7 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   Note: Due to the formulas used to get the heat index and windchill, 
   sometimes these values are a little strange.  A check to see if the heat 
   index is above the temperature before displaying it would be a good thing 
-  for you to do.  You probably don't want to display the winchill unless 
+  for you to do.  You probably don't want to display the windchill unless 
   its cold either.
 
   These are the return values for clouds and visibility:
@@ -1017,9 +1025,9 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
 
 =head1 EXAMPLE
   
-use Geo::Weather;
+use Geo::WeatherNWS;
 
-my $Report=Geo::Weather::new();
+my $Report=Geo::WeatherNWS::new();
 $Report->getreport('khao');		# For Hamilton, OH
 
 print "Temperature is $Report->{temperature_f} degrees\n";
