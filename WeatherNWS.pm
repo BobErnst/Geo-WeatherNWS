@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -109,7 +109,9 @@ sub getreport
 		return $Self;
 	}
 
-	my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0);
+#	Some users needed this for firewalls...
+	my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0, Passive => 1);
+#	my $Ftp=Net::FTP->new("$Self->{servername}", Debug => 0);
 	$Ftp->login("$Self->{username}","$Self->{password}");
 	my $Rcode=$Ftp->code();
 	my $Message=$Ftp->message();
@@ -682,10 +684,10 @@ sub decode
 		{
 			my $Line=$Remark;
 
-			if ($Remark =~ /^A[0-9]/)
-			{
-				$Self->{station_type}="Automated";
-			}
+		        if ($Remark =~ /^AO[1-2]/)
+		        {
+               			 $Self->{station_type}="Automated";
+		        }
 			elsif ($Remark =~ /^SLP/)
 			{
 				$Remark=~tr/[A-Z]//d;

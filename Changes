@@ -1,5 +1,9 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+1.02  Sun Feb 9 12:45:00 2003
+	- changed ftp connection to passive to work behind firewalls
+	- added automated station code provided by Jim Metzger
+
 1.01  Thu Aug 08 13:07:00 2002
 	- updated version number and docs
 	- fixed "isn't numeric" error in remarks processing
