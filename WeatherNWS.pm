@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -101,7 +101,6 @@ sub getreport
 	$Self->{error}="0";
 	my $Tmpfile=POSIX::tmpnam();
 	my $Code=uc($Station);
-	my @Cloudlevels;
 
 	if (!$Code)
 	{
@@ -145,6 +144,42 @@ sub getreport
 		return $Self;
 	}
 
+	local $/;
+	local *F;
+	open(F, "< $Tmpfile\0");
+	my $Data=<F>;
+	close(F);
+	$Data=~tr/\n/ /d;
+
+	$Self->{obs}="$Data";
+	unlink("$Tmpfile");
+
+	$Self->decode();
+	return $Self;
+}
+
+#------------------------------------------------------------------------------
+# Decodeobs takes the obs in a string format and decodes them
+#------------------------------------------------------------------------------
+
+sub decodeobs
+{
+	my $Self=shift;
+	my $Obs=shift;
+	$Self->{obs}=$Obs;
+	$Self->decode();
+	return $Self;
+}
+
+#------------------------------------------------------------------------------
+# Decode does the work, and is only called internally
+#------------------------------------------------------------------------------
+
+sub decode
+{
+	my $Self=shift;
+	my @Cloudlevels;
+
 #------------------------------------------------------------------------------
 #	We use %Converter to translate 2-letter codes into text
 #------------------------------------------------------------------------------
@@ -182,16 +217,7 @@ sub getreport
 			SS => 'Sandstorm'
 			);
 
-	local $/;
-	local *F;
-	open(F, "< $Tmpfile\0");
-	my $Data=<F>;
-	close(F);
-	$Data=~tr/\n/ /d;
-
-	$Self->{obs}="$Data";
-
-	my @Splitter=split(/\s+/, $Data);
+	my @Splitter=split(/\s+/, $Self->{obs});
 	my $Line;
 
 #------------------------------------------------------------------------------
@@ -577,6 +603,28 @@ sub getreport
 		}	
 
 #------------------------------------------------------------------------------
+#		Calculate the atmospheric pressure in different formats.
+#		Based on report (millibars)
+#------------------------------------------------------------------------------
+
+		elsif ($Line =~ /^(Q[0-9][0-9][0-9][0-9])/)
+		{	
+			$Line=~tr/[A-Z]//d;
+			$Self->{pressure_mb}=$Line;
+
+			my $inhg=($Self->{pressure_mb}*0.02953);
+			$Self->{pressure_inhg}=sprintf("%.2f", $inhg);
+			my $mmHg=int($Self->{pressure_inhg}*25.4);
+			my $lbin=($Self->{pressure_inhg}*0.491154);
+			my $kgcm=($Self->{pressure_inhg}*0.0345316);
+
+			$Self->{pressure_mmhg}=$mmHg;
+			$Self->{pressure_lbin}=$lbin;
+			$Self->{pressure_kgcm}=$kgcm;
+
+		}	
+
+#------------------------------------------------------------------------------
 #		If the remarks section is starting, we are done
 #------------------------------------------------------------------------------
 
@@ -610,7 +658,6 @@ sub getreport
 #	Delete the temp file
 #------------------------------------------------------------------------------
 
-	unlink("$Tmpfile");
 	$Self->{cloudlevel_arrayref}=\@Cloudlevels;
 	$Self->{station_type}="Manual";
 
@@ -799,6 +846,11 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
     print "$Report->{errortext}\n";
   }
 
+  # If you have the report in a string, you can now just decode it
+
+  my $Obs="2002/02/25 12:00 NSFA 251200Z 00000KT 50KM FEW024 SCT150 27/25 Q1010";
+  $Report->decodeobs($Obs);
+
 =head1 DESCRIPTION
 
   This module is an early release of what will hopefully be a robust way
@@ -824,7 +876,11 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
 
   And, same as previous releases, the getreport function retrieves the most 
   current METAR formatted station report and decodes it into a hash that you 
-  can use.
+  can use. 
+
+  Some users had reported that they wanted to re-decode the raw
+  observations later.  If you store the "obs" value as a string, and you
+  want to re-decode it later, you can now use the decodeobs function.
 
   I thought this would be a useful module, considering that a lot of sites
   today seem to get their weather data directly through other sites via http.
@@ -871,6 +927,11 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
     print "$Report->{errortext}";
   }
   
+  If you have the report in a string, you can now just decode it
+
+  my $Obs="2002/02/25 12:00 NSFA 251200Z 00000KT 50KM FEW024 SCT150 27/25 Q1010";
+  $Report->decodeobs($Obs);
+
   Assuming there was no error, you can now use the $Report hashref to display 
   the information.  Some of the returned info is about the report itself, 
   such as:

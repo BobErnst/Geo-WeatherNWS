@@ -31,6 +31,11 @@ Usage:
          print "$Report->{errortext}\n";
        }
 
+       # If you have the report in a string, you can now just decode it
+
+       my $Obs="2002/02/25 12:00 NSFA 251200Z 00000KT 50KM FEW024 SCT150 27/25 Q1010";
+       $Report->decodeobs($Obs);
+
 Description 
 
        This module is an early release of what will hopefully be a robust way
@@ -57,6 +62,10 @@ Description
        And, same as previous releases, the getreport function retrieves the most
        current METAR formatted station report and decodes it into a hash that you
        can use.
+
+       Some users had reported that they wanted to re-decode the raw 
+       observations later.  If you store the "obs" value as a string, and you 
+       want to re-decode it later, you can now use the decodeobs function.
 
        I thought this would be a useful module, considering that a lot of sites
        today seem to get their weather data directly through other sites via http.
@@ -94,6 +103,10 @@ Description
        After setting the above (if desired), you can get the data.
 
        $Report->getreport('station');
+
+       If you have the metar encoded data in a string, you can use decodeobs
+
+       $Report->decodeobs($Obs_String);
 
        Now you can check to see if there was an error, and what the text of the
        error message was.
