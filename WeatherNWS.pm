@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -226,6 +226,7 @@ sub decode
 
 	foreach $Line (@Splitter)
 	{
+
 		if (($Line =~ /^([A-Z][A-Z][A-Z][A-Z])/) && ($Line ne "AUTO"))
 		{
 			$Self->{code}="$Line";
@@ -500,6 +501,7 @@ sub decode
 		($Line =~ /^(BKN[0-9])/) ||
 		($Line =~ /^(OVC[0-9])/))
 		{	
+
 			push (@Cloudlevels,$Line);
 		
 			if ($Line =~ /^(CLR)/)
@@ -522,18 +524,19 @@ sub decode
 			{
 				$Self->{cloudcover}="Cloudy";
 			}
-		}
 
-		if (!$Self->{conditionstext})
-		{
-			$Self->{conditionstext}=$Self->{cloudcover};
+			if (!$Self->{conditionstext})
+			{
+				$Self->{conditionstext}=$Self->{cloudcover};
+			}
+
 		}
 
 #------------------------------------------------------------------------------
 #		Get the temperature/dewpoint and calculate windchill/heat index
 #------------------------------------------------------------------------------
 
-		elsif (($Line =~ /^([0-9][0-9]\/[0-9][0-9])/) || ($Line =~ /^([0-9][0-9]\/)/) || ($Line =~ /^(M[0-9][0-9]\/M[0-9][0-9])/) || ($Line =~ /^([0-9][0-9]\/M[0-9][0-9])/))
+		elsif (($Line =~ /^([0-9][0-9]\/[0-9][0-9])/) || ($Line =~ /^(M[0-9][0-9]\/)/) || ($Line =~ /^(M[0-9][0-9]\/M[0-9][0-9])/) || ($Line =~ /^([0-9][0-9]\/M[0-9][0-9])/))
 		{	
 			my @Splitter=split(/\//,$Line);
 			my $Temperature=$Splitter[0];

@@ -1,5 +1,8 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+0.22  Thu May 16 16:14:00 2002
+	- fixed temperature reading /pressure reading errors
+
 0.21  Mon Feb 25 08:50:00 2002
         - added support for mb encoded pressures (Q[XXXX])
         - added decodeobs function to decode metar obs from a string
