@@ -1,5 +1,12 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+0.20  Wed Feb 24 11:33:00 2002
+        - added suport for template files
+
+0.19  Wed Feb 24 10:25:00 2002
+        - added support for error codes
+        - added support for changinf the server/user/directory settings
+
 0.18  Wed Jan 23 21:26:08 2002
 	- added support for fractional visibility readings
 	- fixed "uninitialized value" bugs

@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -78,6 +78,14 @@ sub setdirectory
 	my $Self=shift;
 	my $Dir=shift;
 	$Self->{directory}=$Dir;
+	return $Self;
+}
+
+sub settemplatefile
+{
+	my $Self=shift;
+	my $Tfile=shift;
+	$Self->{tfile}=$Tfile;
 	return $Self;
 }
 
@@ -490,6 +498,11 @@ sub getreport
 			}
 		}
 
+		if (!$Self->{conditionstext})
+		{
+			$Self->{conditionstext}=$Self->{cloudcover};
+		}
+
 #------------------------------------------------------------------------------
 #		Get the temperature/dewpoint and calculate windchill/heat index
 #------------------------------------------------------------------------------
@@ -727,6 +740,25 @@ sub getreport
 		}
 	}
 
+	my $Templatefile=$Self->{tfile};
+
+	if ($Templatefile)
+	{
+		local $/;
+		local *F;
+		open(F, "< $Templatefile\0");
+		my $tout=<F>;
+		close(F);
+
+	        $tout=~s{ %% ( .*? ) %% }
+                        { exists( $Self->{$1} )
+                                ? $Self->{$1}
+                                : ""
+                        }gsex;
+
+		$Self->{templateout}=$tout;
+	}
+
 	$Self->{remark_arrayref}=\@Remarkarray;
         return $Self;
 }
@@ -751,6 +783,12 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   $Report->setpassword('emailaddress@yourdomain.com');
   $Report->setdirectory("/data/observations/metar/stations");
 
+  # Optionally set a template file for generating HTML
+
+  $Report->settemplatefile(/"path/to/template/file.tmpl");
+
+  # Get the report
+ 
   $Report->getreport('kcvg');		# kcvg is the station code for 
 					# Cincinnati, OH
 
@@ -777,6 +815,12 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   error code and the FTP error message if anything goes wrong.  Before this
   was added, if the server was busy or the stations text file was missing
   you couldn't tell what happened.
+
+  Another new feature is the template system.  You can specify a file with the
+  settemplatefile function.  This file is read in and all of the places in the
+  file where the code sees %%name%% will be replaced with the proper values.  
+  An example template has been included.  The template uses the same names as 
+  the hashref returned by the getreport function.
 
   And, same as previous releases, the getreport function retrieves the most 
   current METAR formatted station report and decodes it into a hash that you 
@@ -811,6 +855,12 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   $Report->setpassword('emailaddress@yourdomain.com');
   $Report->setdirectory("/data/observations/metar/stations");
 
+  If you want to specify a template file, use this:
+
+  $Report->settemplatefile("/path/to/template/file.tmpl");
+
+  After setting the above, you can get the data.
+
   $Report->getreport('station');
 
   Now you can check to see if there was an error, and what the text of the
@@ -831,7 +881,11 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   $Report->{obs}          	  # The Observation Text (encoded)
   $Report->{code}         	  # The Station Code
 
-  These are the returned values specific tothe conditions:
+  This is the template output:
+
+  $Report->{templateout}
+
+  These are the returned values specific to the conditions:
 
   $Report->{conditionstext} 	  # Conditions text
   $Report->{conditions1}	  # First Part
