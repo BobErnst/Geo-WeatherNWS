@@ -24,7 +24,7 @@ use POSIX;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.23';
+our $VERSION = '1.01';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -690,7 +690,7 @@ sub decode
 			{
 				$Remark=~tr/[A-Z]//d;
 
-				if ($Remark >= 800)
+				if (($Remark) && ($Remark >= 800))
 				{
 					$Remark=$Remark*.1;
 					$Remark=$Remark+900;
@@ -860,9 +860,9 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
 
 =head1 DESCRIPTION
 
-  New for version 0.23:  New WCT (Wind Chill Temperature) index calulation.
+  New for version 1.01/0.23:  New WCT (Wind Chill Temperature) index calulation.
   Based on the new NWS formula released For the 2001/2002 Winter.  It's a bit
-  late (July 2002) but its there for the coming winter.
+  late (July 2002) but its there.
 
   This module is an early release of what will hopefully be a robust way
   for Perl Programmers to get current weather data from the National Weather

@@ -1,225 +1,26 @@
-Name: 
-
-     Geo::WeatherNWS - A simple way to get current weather data
-     from the NWS.
-
-Usage:
-
-       use Geo::WeatherNWS;
-
-       my $Report=Geo::WeatherNWS::new();
-
-       # Optionally set the server/user/directory of the reports
-
-       $Report->setservername("weather.noaa.gov");
-       $Report->setusername("anonymous");
-       $Report->setpassword('emailaddress@yourdomain.com');
-       $Report->setdirectory("/data/observations/metar/stations");
-
-       # Set the optional output template file
-
-       $Report->settemplatefile("/path/to/template/file.tmpl");
-
-       # Run the report
-
-       $Report->getreport('kcvg'); # kcvg is the station code for Cincinnati, OH
-
-       # Check for errors
-
-       if ($Report->{error})
-       {
-         print "$Report->{errortext}\n";
-       }
-
-       # If you have the report in a string, you can now just decode it
-
-       my $Obs="2002/02/25 12:00 NSFA 251200Z 00000KT 50KM FEW024 SCT150 27/25 Q1010";
-       $Report->decodeobs($Obs);
-
-Description 
-
-       This module is an early release of what will hopefully be a robust way
-       for Perl Programmers to get current weather data from the National Weather
-       Service.  Some new functions have been added since the 0.18 release.
-       Instead of having to use the built-in server/user/password/directory that
-       the module used to use, you can provide your own.  This way if you have
-       access to a mirror server of the data, you can specify the servername,
-       account information and directory where the files exist.  If you dont have
-       access to a mirror, then you dont have to specify anything.  The old server,
-       etc., are still automagically selected.
-
-       Also new in this release is that the getreport function now returns an
-       error code and the FTP error message if anything goes wrong.  Before this
-       was added, if the server was busy or the stations text file was missing
-       you couldn't tell what happened.
-
-       Another new feature is the template system.  You can specify a file with the
-       settemplatefile function.  This file is read in and all of the places in the
-       file where the code sees %%name%% will be replaced with the proper values.
-       An example template has been included.  The template uses the same names as
-       the hashref returned by the getreport function.
-
-       And, same as previous releases, the getreport function retrieves the most
-       current METAR formatted station report and decodes it into a hash that you
-       can use.
-
-       Some users had reported that they wanted to re-decode the raw 
-       observations later.  If you store the "obs" value as a string, and you 
-       want to re-decode it later, you can now use the decodeobs function.
-
-       I thought this would be a useful module, considering that a lot of sites
-       today seem to get their weather data directly through other sites via http.
-       When the site you are getting your weather data from changes format, then
-       you end up having to re-code your parsing program.  With the weather module,
-       all you need is a four-letter station code to get the most recent weather
-       observations.  If you do not know what the station code is for your area,
-       check the site at http://205.156.54.206/oso/siteloc.shtml to start your
-       search.
-
-       Since this module uses the NWS METAR Observations, you can get weather
-       reports from anywhere in the world that has a four-letter station code.
-
-       This module uses the POSIX and Net::FTP modules, so you'll have to make
-       sure that everything is set up with them before you can use the module.
-
-       To begin:
-
-       use Geo::WeatherNWS;
-       my $Report=Geo::WeatherNWS::new();
-
-       If you want to change the server and user information, do it now.  This
-       step is not required.  If you dont call these functions, the module uses
-       the defaults.
-
-       $Report->setservername("weather.noaa.gov");
-       $Report->setusername("anonymous");
-       $Report->setpassword('emailaddress@yourdomain.com');
-       $Report->setdirectory("/data/observations/metar/stations");
-
-       If you want to specify a template file, use this:
-
-       $Report->settemplatefile("/path/to/template/file.tmpl");
-
-       After setting the above (if desired), you can get the data.
-
-       $Report->getreport('station');
-
-       If you have the metar encoded data in a string, you can use decodeobs
-
-       $Report->decodeobs($Obs_String);
-
-       Now you can check to see if there was an error, and what the text of the
-       error message was.
-
-       if ($Report->{error})
-       {
-         print "$Report->{errortext}";
-       }
-
-       Assuming there was no error, you can now use the $Report hashref to display
-       the information.  Some of the returned info is about the report itself,
-       such as:
-
-       $Report->{day}                  # Report Date
-       $Report->{time}                 # Report Time
-       $Report->{station_type}         # Station Type (auto or manual)
-       $Report->{obs}                  # The Observation Text (encoded)
-       $Report->{code}                 # The Station Code
-
-       This is the template output:
-
-       $Report->{templateout}
-
-       These are the returned values specific to the conditions:
-
-       $Report->{conditionstext}       # Conditions text
-       $Report->{conditions1}          # First Part
-       $Report->{conditions2}          # Second Part
-
-       These are the returned values specific to wind:
-
-       $Report->{windspeedmph}         # Wind Speed (in mph)
-       $Report->{windspeedkts}         # Wind Speed (in kts)
-       $Report->{winddir}              # Wind Direction (in degrees)
-       $Report->{winddirtext}          # Wind Direction (text version)
-       $Report->{windgustmph}          # Wind Gusts (mph)
-       $Report->{windgustkts}          # Wind Gusts (kts)
-
-       These are the returned values specific to temperature and
-       humidity:
-
-       $Report->{temperature_f}        # Temperature (degrees f)
-       $Report->{temperature_c}        # Temperature (degrees c)
-       $Report->{dewpoint_f}           # Dewpoint (degrees f)
-       $Report->{dewpoint_c}           # Dewpoint (degrees c)
-       $Report->{relative_humidity}    # Relative Humidity (in percent)
-       $Report->{windchill_f}          # Wind Chill (degrees f)
-       $Report->{windchill_c}          # Wind Chill (degrees c)
-       $Report->{heat_index_f}         # Heat Index (degrees f)
-       $Report->{heat_index_c}         # Heat Index (degrees c)
-
-       Note: Due to the formulas used to get the heat index and windchill,
-       sometimes these values are a little strange.  A check to see if the heat
-       index is above the temperature before displaying it would be a good thing
-       for you to do.  You probably don't want to display the winchill unless
-       its cold either.
-
-       These are the return values for clouds and visibility:
-
-       $Report->{cloudcover}           # Cloudcover (text)
-       $Report->{cloudlevel_arrayref}  # Arrayref holding all cloud levels
-       $Report->{visibility_mi}        # Visibility (miles)
-       $Report->{visibility_km}        # Visibility (kilometers)
-
-       These are the return values for air pressure:
-
-       $Report->{pressure_inhg}        # Air Pressure (in mercury)
-       $Report->{pressure_mmhg}        # Air Pressure (in mm mercury)
-       $Report->{pressure_kgcm}        # Air Pressure (kg per cm)
-       $Report->{pressure_mb}          # Air Pressure (mb)
-       $Report->{pressure_lbin}        # Air Pressure (psi)
-
-       Other values MAY be returned, but only if there are remarks appended
-       to the observations.  This section of the code is more experimental,
-       and these names could change in future releases.
-
-       $Report->{remark_arrayref}      # Arrayref holding all remarks
-       $Report->{ptemerature}          # Precise Tepmerature Reading
-       $Report->{storm}                # Thunderstorm stats
-       $Report->{slp_inhg}             # Air Pressure at Sea Level (in mercury)
-       $Report->{slp_mmhg}             # Air Pressure at Sea Level (mm mercury)
-       $Report->{slp_kgcm}             # Air Pressure at Sea Level (kg per cm)
-       $Report->{slp_lbin}             # Air Pressure at Sea Level (psi)
-       $Report->{slp_mb}               # Air Pressure at Sea Level (mb)
-
-       Another note:  Do not be surprised if sometimes the values come back
-       empty. The weather stations are not required to place all of the
-       information in the reports.
-
-Example: 
-
-     use Geo::Weather;
-
-     my $Report=Geo::WeatherNWS::new(); 
-     $Report->getreport('khao');        # For Hamilton, OH
-
-     print "Temperature is $Report->{temperature_f} degrees\n";
-     print "Air Pressure is $Report->{pressure_inhg} inches\n";
-
-     # If it isnt raining, etc - just print cloud cover
-
-     if ($Report->{conditionstext}) 
-     {
-          print "Conditions: $Report->{conditionstext}\n"; 
-     } 
-     else 
-     {
-          print "Conditions: $Report->{cloudcover}\n"; 
-     }
-
-Author:
-
-     Marc Slagle - marc.slagle@fulkertconsulting.com
-
-
-
+The Geo::WeatherNWS module is used to get the latest METAR encoded 
+observations from the National Weather Service and decode them to a 
+perl-friendly format.  The jump to version 1.01 was made because I
+decided to lock the interface down from the 0.23 version.  There are
+also some minor bug fixes in the remarks section.
+
+The documentation on how to use the module is available via perldoc.
+
+Requirements:
+
+	POSIX
+	Net::FTP
+
+Install this module in the normal way:
+
+        perl Makefile.PL
+        make
+        make test
+        make install
+
+Todo:
+	- Adding experimental tie-in to GD::Graph
+	- Adding experimental 12-24 hour forecast system
+	  (this might be somewhat specific to North America,
+	  unless I can find a good way to set the rules for 
+	  the forecast)

@@ -1,5 +1,9 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+1.01  Thu Aug 08 13:07:00 2002
+	- updated version number and docs
+	- fixed "isn't numeric" error in remarks processing
+
 0.23  Fri Aug 02 10:28:00 2002
 	- fixed some documentation errors
 	- added new wind chill calculation formula
