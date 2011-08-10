@@ -1,7 +1,12 @@
 Changes
-MANIFEST
-README
+lib/Geo/WeatherNWS.pm
 Makefile.PL
-WeatherNWS.pm
-test.pl
+MANIFEST			This list of files
+README
+t/00-load.t
+t/collect.t
+t/decode.t
+t/manifest.t
+t/pod-coverage.t
+t/pod.t
 template/weather.tmpl

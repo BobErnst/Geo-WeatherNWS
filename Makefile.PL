@@ -1,8 +1,22 @@
+use 5.006;
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+
 WriteMakefile(
-    'NAME'		=> 'Geo::WeatherNWS',
-    'VERSION_FROM'	=> 'WeatherNWS.pm', # finds $VERSION
-    'PREREQ_PM'		=> {Net::FTP => '2.50'}, # e.g., Module::Name => 1.1
+    NAME                => 'Geo::WeatherNWS',
+    AUTHOR              => q{Marc Slagle <marc.slagle@online-rewards.com>},
+    VERSION_FROM        => 'lib/Geo/WeatherNWS.pm',
+    ABSTRACT_FROM       => 'lib/Geo/WeatherNWS.pm',
+    ($ExtUtils::MakeMaker::VERSION >= 6.3002
+      ? ('LICENSE'=> 'perl')
+      : ()),
+    PL_FILES            => {},
+    PREREQ_PM => {
+        'Test::More' => 0,
+        'Net::FTP' => 2.50,
+        'LWP::UserAgent' => 0,
+    },
+    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    clean               => { FILES => 'Geo-WeatherNWS-*' },
 );

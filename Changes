@@ -1,5 +1,11 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+1.04  Wed Aug 10 10:00:00 2011
+    - Changed default ftp server name to tgftp.nws.noaa.gov,
+      added ftp timeout,
+      did some restructuring, 
+      added tests and some documentation
+
 1.03  Sun Feb 9 13:52:00 2003
 	- added the getreporthttp call to get the metar data from the nws 
 	  website at http://weather.noaa.gov/cgi-bin/mgetmetar.pl
