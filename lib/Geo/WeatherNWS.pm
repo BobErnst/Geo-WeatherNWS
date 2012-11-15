@@ -8,6 +8,9 @@ package Geo::WeatherNWS;
 #                 24 February 2002 - Adding server/error code - Marc
 #                 10 August 2011   - changed FTP server name, added tests,
 #                                    docs, some restructuring. - Bob Ernst
+#                 14 November 2012 - removed unneeded /d after tr,
+#                                    make network tests optional,
+#                                    check status of opens - Bob
 #
 #
 #------------------------------------------------------------------------------
@@ -22,12 +25,13 @@ use warnings;
 use Net::FTP;
 use IO::Handle;
 use POSIX;
+use Carp;
 
 #------------------------------------------------------------------------------
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '1.04';
+our $VERSION = '1.0401';
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -123,7 +127,7 @@ sub getreport {
     if ( $Self->{http} ) {
         use LWP::UserAgent;
         my $Ua = LWP::UserAgent->new();
-        $Ua->agent("Geo::WeatherNWS 1.03");
+        $Ua->agent("Geo::WeatherNWS $VERSION");
 
         my $Req = HTTP::Request->new( GET => $Self->{http} );
         $Req->content_type('application/x-www-form-urlencoded');
@@ -187,13 +191,14 @@ sub getreport {
         }
 
         local $/;    # enable slurp mode
-        open my $F, '<', $Tmpfile;
+        open my $F, '<', $Tmpfile or
+		croak "error opening temp input $Tmpfile: $!";
         my $Data = <$F>;
         close($F);
-        $Data =~ tr/\n/ /d;
-
-        $Self->{obs} = $Data;
         unlink($Tmpfile);
+
+        $Data =~ tr/\n/ /;
+        $Self->{obs} = $Data;
     }
 
     $Self->decode();
@@ -790,7 +795,8 @@ sub decode {
 
     if ($Templatefile) {
         local $/;    # enable slurp mode
-        open my $F, '<', $Templatefile;
+        open my $F, '<', $Templatefile or
+		croak "error opening template file $Templatefile: $!";
         my $tout = <$F>;
         close($F);
 

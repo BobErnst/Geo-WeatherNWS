@@ -8,8 +8,10 @@ The documentation on how to use the module is available via perldoc.
 
 Requirements:
 
-	POSIX
 	Net::FTP
+	IO::Handle
+	POSIX
+	Carp
 
 Install this module in the normal way:
 

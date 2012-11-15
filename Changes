@@ -1,5 +1,10 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+1.041 Wed Nov 14 22:00:00 2012
+    - Minor changes: removed unneeded /d after tr,
+      made network tests optional,
+      check status of opens.
+
 1.04  Wed Aug 10 10:00:00 2011
     - Changed default ftp server name to tgftp.nws.noaa.gov,
       added ftp timeout,
