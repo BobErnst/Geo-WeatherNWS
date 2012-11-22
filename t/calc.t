@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 8; 
+use Test::More tests => 13; 
 use Geo::WeatherNWS;
 
 # Test the supporting calculations
@@ -20,5 +20,15 @@ is( Geo::WeatherNWS::convert_c_to_f(100),   212,   '100c -> f' );
 is( Geo::WeatherNWS::convert_c_to_f(0),     32,    '0c -> f' );
 is( Geo::WeatherNWS::convert_c_to_f(-40),   -40,   '-40c -> f' );
 is( Geo::WeatherNWS::convert_c_to_f(undef), undef, 'undef c -> f' );
+
+# Wind Chill
+
+is( Geo::WeatherNWS::wind_chill(20,undef),   undef,   'undefined wind' );
+# TODO these values probably need to be adjusted,
+# but for now this checks the existing behavior
+is( Geo::WeatherNWS::wind_chill(20,0),   48,   'wind chill for 32 f, wind calm' );
+is( Geo::WeatherNWS::wind_chill(32,10),   23,   'wind chill for 32 f, wind 10 mph' );
+is( Geo::WeatherNWS::wind_chill(40,20),   30,   'wind chill for 40 f, wind 20 mph' );
+is( Geo::WeatherNWS::wind_chill(0,30),   -25,   'wind chill for 0 f, wind 30 mph' );
 
 

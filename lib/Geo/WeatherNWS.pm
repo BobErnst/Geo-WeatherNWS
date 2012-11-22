@@ -35,8 +35,8 @@ our $VERSION = '1.05';
 
 #------------------------------------------------------------------------------
 # Temperature conversion
-# If the temperature in Fahrenheit is undefined,
-# then the temperature in Celsius is also undefined.
+# If the temperature we are converting from is undefined,
+# then the temperature we are converting to is also undefined.
 #------------------------------------------------------------------------------
 
 sub convert_f_to_c {
@@ -59,6 +59,38 @@ sub convert_c_to_f {
     return $fahrenheit;
 }
 
+#------------------------------------------------------------------------------
+# Wind chill
+#------------------------------------------------------------------------------
+sub wind_chill {
+    my $F = shift;
+    my $wind_speed_mph = shift;
+    my $wind_chill;
+
+    # TODO - return undefined for values out of range
+
+    # Windchill temperature is only defined for:
+    # *  temperatures at or below 50 F
+    # *  wind speed above 3 mph
+    # Bright sunshine may increase the wind chill temperature by
+    # 10 to 18 degress F.
+
+    if (defined $F && defined $wind_speed_mph) {
+        # Old Formula
+        # my $Windc=int(
+	#    0.0817*
+	#    (3.71*$Self->{windspeedmph}**0.5 + 5.81 - 0.25*$Self->{windspeedmph})*
+	#    ($F - 91.4) + 91.4);
+
+        # New Formula
+        $wind_chill =
+              int( 35.74 +
+                  ( 0.6215 * $F ) -
+                  ( 35.75 * ( $wind_speed_mph**0.16 ) ) +
+                  ( ( 0.4275 * $F ) * ( $wind_speed_mph**0.16 ) ) );
+    }
+    return $wind_chill;
+}
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -377,7 +409,9 @@ sub decode {
                 $Winddirtxt = "Calm";
             }
 
+	    # TODO need to change from int to round
             my $MPH  = int( $Windspeedkts / 0.868391 );
+	    # TODO need to change from int to round
             my $GMPH = int( $Windgustkts / 0.868391 );
 
             $Self->{windspeedkts} = $Windspeedkts;
@@ -406,6 +440,7 @@ sub decode {
                 $Line = $Splitter[0] / $Splitter[1];
             }
 
+	    # TODO need to change from int to round
             my $Viskm = int( $Line * 1.6 );
             $Self->{visibility_mi} = $Line;
             $Self->{visibility_km} = $Viskm;
@@ -583,16 +618,20 @@ sub decode {
                 $Dewpoint = ( $Dewpoint - ( $Dewpoint * 2 ) );
             }
 
-            my $Tempf = int( ( 1.8 * $Temperature ) + 32 );
-            my $Dewf  = int( ( 1.8 * $Dewpoint ) + 32 );
+	    # TODO need to change from int to round
+            my $Tempf = int( convert_c_to_f( $Temperature ) );
+	    # TODO need to change from int to round
+            my $Dewf  = int( convert_c_to_f( $Dewpoint ) );
 
             my $Es =
               6.11 * 10.0**( 7.5 * $Temperature / ( 237.7 + $Temperature ) );
             my $E = 6.11 * 10.0**( 7.5 * $Dewpoint / ( 237.7 + $Dewpoint ) );
+	    # TODO need to change from int to round
             my $rh = int( ( $E / $Es ) * 100 );
 
             my $F = $Tempf;
 
+	    # TODO need to change from int to round
             my $Heati =
               int( -42.379 +
                   2.04901523 * $F +
@@ -603,7 +642,6 @@ sub decode {
                   1.22874e-03 * $F**2 * $rh +
                   8.5282e-04 * $F * $rh**2 -
                   1.99e-06 * $F**2 * $rh**2 );
-            #my $Heatic = int( 5 / 9 * ( $Heati - 32 ) );
 	    # TODO need to change from int to round
             my $Heatic = int ( convert_f_to_c( $Heati ) );
 
@@ -612,12 +650,14 @@ sub decode {
 
             # New Formula
 
+	    # TODO need to change from int to round
             my $Windc =
               int( 35.74 +
                   ( 0.6215 * $F ) -
                   ( 35.75 * ( $Self->{windspeedmph}**0.16 ) ) +
                   ( ( 0.4275 * $F ) * ( $Self->{windspeedmph}**0.16 ) ) );
-            my $Windcc = int( 5 / 9 * ( $Windc - 32 ) );
+	    # TODO need to change from int to round
+            my $Windcc = int( convert_f_to_c( $Windc ) );
 
             $Self->{temperature_c}     = $Temperature;
             $Self->{temperature_f}     = $Tempf;
@@ -642,7 +682,9 @@ sub decode {
             my $Part2 = substr( $Line, 2, 4 );
             $Self->{pressure_inhg} = "$Part1.$Part2";
 
+	    # TODO need to change from int to round
             my $mb   = int( $Self->{pressure_inhg} * 33.8639 );
+	    # TODO need to change from int to round
             my $mmHg = int( $Self->{pressure_inhg} * 25.4 );
             my $lbin = ( $Self->{pressure_inhg} * 0.491154 );
             my $kgcm = ( $Self->{pressure_inhg} * 0.0345316 );
@@ -665,6 +707,7 @@ sub decode {
 
             my $inhg = ( $Self->{pressure_mb} * 0.02953 );
             $Self->{pressure_inhg} = sprintf( "%.2f", $inhg );
+	    # TODO need to change from int to round
             my $mmHg = int( $Self->{pressure_inhg} * 25.4 );
             my $lbin = ( $Self->{pressure_inhg} * 0.491154 );
             my $kgcm = ( $Self->{pressure_inhg} * 0.0345316 );
@@ -735,11 +778,13 @@ sub decode {
 
                 $Self->{slp_inhg} = ( $Remark * 0.0295300 );
                 $Self->{slp_inhg} = substr( $Self->{slp_inhg}, 0, 5 );
+	        # TODO need to change from int to round
                 $Self->{slp_mmhg} = int( $Remark * 0.750062 );
                 $Self->{slp_lbin} = ( $Remark * 0.0145038 );
                 $Self->{slp_kgcm} = ( $Remark * 0.00101972 );
+	        # TODO need to change from int to round
                 $Self->{slp_mb}   = int($Remark);
-            }
+	    }
 
  #------------------------------------------------------------------------------
  # Thunderstorm info
