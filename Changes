@@ -1,5 +1,10 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+1.05
+    - Changes to deal with undefined values used for calculations to avoid warnings.
+      To make it easier to check for undefined values, some calculations were moved
+      into functions.
+
 1.041 Wed Nov 14 22:00:00 2012
     - Minor changes: removed unneeded /d after tr,
       made network tests optional,
@@ -39,7 +44,7 @@ Revision history for Perl extension Geo::WeatherNWS.
 
 0.19  Sun Feb 24 10:25:00 2002
         - added support for error codes
-        - added support for changinf the server/user/directory settings
+        - added support for changing the server/user/directory settings
 
 0.18  Wed Jan 23 21:26:08 2002
 	- added support for fractional visibility readings

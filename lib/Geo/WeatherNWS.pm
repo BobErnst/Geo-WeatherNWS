@@ -31,7 +31,34 @@ use Carp;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '1.0401';
+our $VERSION = '1.05';
+
+#------------------------------------------------------------------------------
+# Temperature conversion
+# If the temperature in Fahrenheit is undefined,
+# then the temperature in Celsius is also undefined.
+#------------------------------------------------------------------------------
+
+sub convert_f_to_c {
+    my $fahrenheit = shift;
+    my $celsius;
+
+    if (defined $fahrenheit) {
+        $celsius = (5.0/9.0) * ($fahrenheit - 32.0);
+    }    
+    return $celsius;
+}
+
+sub convert_c_to_f {
+    my $celsius = shift;
+    my $fahrenheit;
+
+    if (defined $celsius)  {
+        $fahrenheit = ((9.0/5.0) * $celsius) + 32.0;
+    }
+    return $fahrenheit;
+}
+
 
 #------------------------------------------------------------------------------
 # Lets create a new self
@@ -576,7 +603,9 @@ sub decode {
                   1.22874e-03 * $F**2 * $rh +
                   8.5282e-04 * $F * $rh**2 -
                   1.99e-06 * $F**2 * $rh**2 );
-            my $Heatic = int( 5 / 9 * ( $Heati - 32 ) );
+            #my $Heatic = int( 5 / 9 * ( $Heati - 32 ) );
+	    # TODO need to change from int to round
+            my $Heatic = int ( convert_f_to_c( $Heati ) );
 
 # Old Formula
 # my $Windc=int(0.0817*(3.71*$Self->{windspeedmph}**0.5 + 5.81 - 0.25*$Self->{windspeedmph})*($F - 91.4) + 91.4);
