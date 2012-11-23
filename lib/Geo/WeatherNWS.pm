@@ -41,6 +41,7 @@ our $VERSION = '1.05';
 sub round {
     my $float = shift;
     my $rounded;
+
     if ( defined $float ) {
         $rounded = sprintf "%.0f", $float;
     }
@@ -82,18 +83,12 @@ sub windchill {
     my $wind_speed_mph = shift;
     my $windchill;
 
-    # TODO - return undefined for values out of range
-
     # This is the North American wind chill index.
     # Windchill temperature is only defined for:
     # *  temperatures at or below 50 F
     # *  wind speed above 3 mph
     # Bright sunshine may increase the wind chill temperature by
     # 10 to 18 degress F.
-
-    # TODO for now, treat undefined values like 0 to compare with previous version
-    $F = 0 if !defined $F;
-    $wind_speed_mph = 0 if !defined $wind_speed_mph;
 
     if (defined $F && defined $wind_speed_mph) {
         # Old Formula
@@ -103,12 +98,13 @@ sub windchill {
 	#    ($F - 91.4) + 91.4);
 
         # New Formula
-	# TODO need to change from int to round
-        $windchill =
-              int( 35.74 +
-                  ( 0.6215 * $F ) -
-                  ( 35.75 * ( $wind_speed_mph**0.16 ) ) +
-                  ( ( 0.4275 * $F ) * ( $wind_speed_mph**0.16 ) ) );
+	if ($F <= 50 && $wind_speed_mph > 3) {
+            $windchill =
+                35.74 +
+                ( 0.6215 * $F ) -
+                ( 35.75 * ( $wind_speed_mph**0.16 ) ) +
+                ( ( 0.4275 * $F ) * ( $wind_speed_mph**0.16 ) );
+	}
     }
     return $windchill;
 }
@@ -149,8 +145,6 @@ sub heat_index {
 sub convert_kts_to_mph {
     my $knots = shift;
     my $mph;
-
-    $knots = 0 if !defined $knots; # TODO treat undefined as zero for now
 
     if (defined $knots) {
 	# A better conversion is * 1.150779 (or dividing by 0.868976)
@@ -703,7 +697,9 @@ sub decode {
 
 	    my $Windc = windchill( $F, $Self->{windspeedmph} );
 	    # TODO need to change from int to round
-            my $Windcc = int( convert_f_to_c( $Windc ) );
+            my $Windcc = convert_f_to_c( $Windc );
+	    $Windc = round($Windc);
+	    $Windcc = round($Windcc);
 
             $Self->{temperature_c}     = $Temperature;
             $Self->{temperature_f}     = $Tempf;

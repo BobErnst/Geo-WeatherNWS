@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 24; 
+use Test::More tests => 25; 
 use Geo::WeatherNWS;
 
 # Test the supporting calculations
@@ -36,13 +36,11 @@ is( Geo::WeatherNWS::convert_c_to_f(undef), undef, 'undef c -> f' );
 
 # Windchill
 
-#TODO re-enable =>    is( Geo::WeatherNWS::wind_chill(20,undef),   undef,   'undefined wind' );
-# TODO these values probably need to be adjusted,
-# but for now this checks the existing behavior
-is( Geo::WeatherNWS::windchill(20,0),   48,   'wind chill for 32 f, wind calm' );
-is( Geo::WeatherNWS::windchill(32,10),   23,   'wind chill for 32 f, wind 10 mph' );
-is( Geo::WeatherNWS::windchill(40,20),   30,   'wind chill for 40 f, wind 20 mph' );
-is( Geo::WeatherNWS::windchill(0,30),   -25,   'wind chill for 0 f, wind 30 mph' );
+is( Geo::WeatherNWS::windchill(20,undef), undef, 'undefined wind' );
+is( Geo::WeatherNWS::windchill(20,0), undef, 'wind chill for 32 f, wind calm' );
+is( Geo::WeatherNWS::round(Geo::WeatherNWS::windchill(32,10)), 24, 'wind chill for 32 f, wind 10 mph' );
+is( Geo::WeatherNWS::round(Geo::WeatherNWS::windchill(40,20)), 30, 'wind chill for 40 f, wind 20 mph' );
+is( Geo::WeatherNWS::round(Geo::WeatherNWS::windchill(0,30)), -26, 'wind chill for 0 f, wind 30 mph' );
 
 # Wind Speed
 
