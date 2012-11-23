@@ -142,8 +142,7 @@ sub convert_kts_to_mph {
     my $mph;
 
     if (defined $knots) {
-	# A better conversion is * 1.150779 (or dividing by 0.868976)
-        $mph = $knots / 0.868391;
+        $mph = $knots * 1.150779;
     }
     return $mph;
 }
@@ -465,9 +464,8 @@ sub decode {
                 $Winddirtxt = "Calm";
             }
 
-	    # TODO need to change from int to round
-            my $MPH  = int( convert_kts_to_mph($Windspeedkts) );
-            my $GMPH = int( convert_kts_to_mph($Windgustkts) );
+            my $MPH  = round( convert_kts_to_mph($Windspeedkts) );
+            my $GMPH = round( convert_kts_to_mph($Windgustkts) );
 
             $Self->{windspeedkts} = $Windspeedkts;
             $Self->{windgustkts}  = $Windgustkts;
