@@ -11,6 +11,11 @@ package Geo::WeatherNWS;
 #                 14 November 2012 - removed unneeded /d after tr,
 #                                    make network tests optional,
 #                                    check status of opens - Bob
+#                 22 November 2012 - fix issues with undefined values,
+#                                    change some conversion constants,
+#                                    round instead of truncate results,
+#                                    only calculate windchill for proper range.
+#                                    - Bob
 #
 #
 #------------------------------------------------------------------------------
