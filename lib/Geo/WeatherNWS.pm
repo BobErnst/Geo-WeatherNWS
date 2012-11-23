@@ -60,20 +60,26 @@ sub convert_c_to_f {
 }
 
 #------------------------------------------------------------------------------
-# Wind chill
+# Windchill
 #------------------------------------------------------------------------------
-sub wind_chill {
+
+sub windchill {
     my $F = shift;
     my $wind_speed_mph = shift;
-    my $wind_chill;
+    my $windchill;
 
     # TODO - return undefined for values out of range
 
+    # This is the North American wind chill index.
     # Windchill temperature is only defined for:
     # *  temperatures at or below 50 F
     # *  wind speed above 3 mph
     # Bright sunshine may increase the wind chill temperature by
     # 10 to 18 degress F.
+
+    # TODO for now, treat undefined values like 0 to compare with previous version
+    $F = 0 if !defined $F;
+    $wind_speed_mph = 0 if !defined $wind_speed_mph;
 
     if (defined $F && defined $wind_speed_mph) {
         # Old Formula
@@ -83,13 +89,43 @@ sub wind_chill {
 	#    ($F - 91.4) + 91.4);
 
         # New Formula
-        $wind_chill =
+	# TODO need to change from int to round
+        $windchill =
               int( 35.74 +
                   ( 0.6215 * $F ) -
                   ( 35.75 * ( $wind_speed_mph**0.16 ) ) +
                   ( ( 0.4275 * $F ) * ( $wind_speed_mph**0.16 ) ) );
     }
-    return $wind_chill;
+    return $windchill;
+}
+
+#------------------------------------------------------------------------------
+# Heat Index
+#------------------------------------------------------------------------------
+
+sub heat_index {
+    my $F = shift;
+    my $rh = shift;
+    my $heat_index;
+
+    # TODO for now, treat undefined values like 0 to compare with previous version
+    $F = 0 if !defined $F;
+    $rh = 0 if !defined $rh;
+
+    if (defined $F && defined $rh) {
+        # TODO need to change from int to round
+        $heat_index =
+              int( -42.379 +
+                  2.04901523 * $F +
+                  10.14333127 * $rh -
+                  0.22475541 * $F * $rh -
+                  6.83783e-03 * $F**2 -
+                  5.481717e-02 * $rh**2 +
+                  1.22874e-03 * $F**2 * $rh +
+                  8.5282e-04 * $F * $rh**2 -
+                  1.99e-06 * $F**2 * $rh**2 );
+    }
+    return $heat_index;
 }
 
 #------------------------------------------------------------------------------
@@ -631,31 +667,11 @@ sub decode {
 
             my $F = $Tempf;
 
-	    # TODO need to change from int to round
-            my $Heati =
-              int( -42.379 +
-                  2.04901523 * $F +
-                  10.14333127 * $rh -
-                  0.22475541 * $F * $rh -
-                  6.83783e-03 * $F**2 -
-                  5.481717e-02 * $rh**2 +
-                  1.22874e-03 * $F**2 * $rh +
-                  8.5282e-04 * $F * $rh**2 -
-                  1.99e-06 * $F**2 * $rh**2 );
+	    my $Heati = heat_index( $F, $rh );
 	    # TODO need to change from int to round
             my $Heatic = int ( convert_f_to_c( $Heati ) );
 
-# Old Formula
-# my $Windc=int(0.0817*(3.71*$Self->{windspeedmph}**0.5 + 5.81 - 0.25*$Self->{windspeedmph})*($F - 91.4) + 91.4);
-
-            # New Formula
-
-	    # TODO need to change from int to round
-            my $Windc =
-              int( 35.74 +
-                  ( 0.6215 * $F ) -
-                  ( 35.75 * ( $Self->{windspeedmph}**0.16 ) ) +
-                  ( ( 0.4275 * $F ) * ( $Self->{windspeedmph}**0.16 ) ) );
+	    my $Windc = windchill( $F, $Self->{windspeedmph} );
 	    # TODO need to change from int to round
             my $Windcc = int( convert_f_to_c( $Windc ) );
 
@@ -766,6 +782,10 @@ sub decode {
             }
             elsif ( $Remark =~ /^SLP/ ) {
                 $Remark =~ tr/[A-Z]//d;
+
+		if ( !defined $Remark || $Remark eq "") {
+			$Remark = 0;
+		}
 
                 if ( ($Remark) && ( $Remark >= 800 ) ) {
                     $Remark = $Remark * .1;
