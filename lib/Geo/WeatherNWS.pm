@@ -34,6 +34,20 @@ use Carp;
 our $VERSION = '1.05';
 
 #------------------------------------------------------------------------------
+# Round function
+# Should use Math::Round instead but that adds another dependency
+#------------------------------------------------------------------------------
+
+sub round {
+    my $float = shift;
+    my $rounded;
+    if ( defined $float ) {
+        $rounded = sprintf "%.0f", $float;
+    }
+    return $rounded;
+}
+
+#------------------------------------------------------------------------------
 # Temperature conversion
 # If the temperature we are converting from is undefined,
 # then the temperature we are converting to is also undefined.
@@ -126,6 +140,23 @@ sub heat_index {
                   1.99e-06 * $F**2 * $rh**2 );
     }
     return $heat_index;
+}
+
+#------------------------------------------------------------------------------
+# Convert wind speed from nautical miles per hour to miles per hour
+#------------------------------------------------------------------------------
+
+sub convert_kts_to_mph {
+    my $knots = shift;
+    my $mph;
+
+    $knots = 0 if !defined $knots; # TODO treat undefined as zero for now
+
+    if (defined $knots) {
+	# A better conversion is * 1.150779 (or dividing by 0.868976)
+        $mph = $knots / 0.868391;
+    }
+    return $mph;
 }
 
 #------------------------------------------------------------------------------
@@ -446,9 +477,10 @@ sub decode {
             }
 
 	    # TODO need to change from int to round
-            my $MPH  = int( $Windspeedkts / 0.868391 );
+            #my $MPH  = int( $Windspeedkts / 0.868391 );
+            my $MPH  = int( convert_kts_to_mph($Windspeedkts) );
 	    # TODO need to change from int to round
-            my $GMPH = int( $Windgustkts / 0.868391 );
+            my $GMPH = int( convert_kts_to_mph($Windgustkts) );
 
             $Self->{windspeedkts} = $Windspeedkts;
             $Self->{windgustkts}  = $Windgustkts;
