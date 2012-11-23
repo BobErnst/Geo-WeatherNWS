@@ -118,22 +118,17 @@ sub heat_index {
     my $rh = shift;
     my $heat_index;
 
-    # TODO for now, treat undefined values like 0 to compare with previous version
-    $F = 0 if !defined $F;
-    $rh = 0 if !defined $rh;
-
     if (defined $F && defined $rh) {
-        # TODO need to change from int to round
         $heat_index =
-              int( -42.379 +
-                  2.04901523 * $F +
-                  10.14333127 * $rh -
-                  0.22475541 * $F * $rh -
-                  6.83783e-03 * $F**2 -
-                  5.481717e-02 * $rh**2 +
-                  1.22874e-03 * $F**2 * $rh +
-                  8.5282e-04 * $F * $rh**2 -
-                  1.99e-06 * $F**2 * $rh**2 );
+            -42.379 +
+            2.04901523 * $F +
+            10.14333127 * $rh -
+            0.22475541 * $F * $rh -
+            6.83783e-03 * $F**2 -
+            5.481717e-02 * $rh**2 +
+            1.22874e-03 * $F**2 * $rh +
+            8.5282e-04 * $F * $rh**2 -
+            1.99e-06 * $F**2 * $rh**2;
     }
     return $heat_index;
 }
@@ -692,8 +687,9 @@ sub decode {
             my $F = $Tempf;
 
 	    my $Heati = heat_index( $F, $rh );
-	    # TODO need to change from int to round
-            my $Heatic = int ( convert_f_to_c( $Heati ) );
+            my $Heatic = convert_f_to_c( $Heati );
+            $Heati = round($Heati);
+            $Heatic = round($Heatic);
 
 	    my $Windc = windchill( $F, $Self->{windspeedmph} );
 	    # TODO need to change from int to round

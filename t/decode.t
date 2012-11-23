@@ -26,7 +26,7 @@ is( $decode1->{conditionstext},    'Fair', 'decoded conditions in text' );
 is( $decode1->{day},               '25',   'decoded day' );
 is( $decode1->{dewpoint_c},        25,     'decoded dewpoint Celius' );
 is( $decode1->{dewpoint_f},        77,     'decoded dewpoint Fahrenheit' );
-is( $decode1->{heat_index_c},      29,     'decoded heat index Celius' );
+is( $decode1->{heat_index_c},      30,     'decoded heat index Celius' );
 is( $decode1->{heat_index_f},      85,     'decoded heat index Fahrenheit' );
 is( $decode1->{obs},               $obs1,  'obs matched original' );
 is( $decode1->{pressure_mb},       1010,   'decoded pressure mb' );

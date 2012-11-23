@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 25; 
+use Test::More tests => 27; 
 use Geo::WeatherNWS;
 
 # Test the supporting calculations
@@ -41,6 +41,11 @@ is( Geo::WeatherNWS::windchill(20,0), undef, 'wind chill for 32 f, wind calm' );
 is( Geo::WeatherNWS::round(Geo::WeatherNWS::windchill(32,10)), 24, 'wind chill for 32 f, wind 10 mph' );
 is( Geo::WeatherNWS::round(Geo::WeatherNWS::windchill(40,20)), 30, 'wind chill for 40 f, wind 20 mph' );
 is( Geo::WeatherNWS::round(Geo::WeatherNWS::windchill(0,30)), -26, 'wind chill for 0 f, wind 30 mph' );
+
+# Heat Index
+
+is( Geo::WeatherNWS::round(Geo::WeatherNWS::heat_index(80, 50)), 81, 'heat index 80F 50% rh');
+is( Geo::WeatherNWS::round(Geo::WeatherNWS::heat_index(100, 60)), 129, 'heat index 100F 60% rh');
 
 # Wind Speed
 
