@@ -658,7 +658,6 @@ sub decode {
             if ( !$Self->{conditionstext} ) {
                 $Self->{conditionstext} = $Self->{cloudcover};
             }
-
         }
 
  #------------------------------------------------------------------------------
@@ -684,26 +683,25 @@ sub decode {
                 $Dewpoint = ( $Dewpoint - ( $Dewpoint * 2 ) );
             }
 
-	    # TODO need to change from int to round
-            my $Tempf = int( convert_c_to_f( $Temperature ) );
-	    # TODO need to change from int to round
-            my $Dewf  = int( convert_c_to_f( $Dewpoint ) );
+            my $Tempf = convert_c_to_f( $Temperature );
+            my $Dewf  = convert_c_to_f( $Dewpoint );
 
             my $Es =
               6.11 * 10.0**( 7.5 * $Temperature / ( 237.7 + $Temperature ) );
             my $E = 6.11 * 10.0**( 7.5 * $Dewpoint / ( 237.7 + $Dewpoint ) );
-	    # TODO need to change from int to round
-            my $rh = int( ( $E / $Es ) * 100 );
+            my $rh = round( ( $E / $Es ) * 100 );
 
             my $F = $Tempf;
 
 	    my $Heati = heat_index( $F, $rh );
             my $Heatic = convert_f_to_c( $Heati );
+
+            $Tempf = round($Tempf);
+            $Dewf = round($Dewf);
             $Heati = round($Heati);
             $Heatic = round($Heatic);
 
 	    my $Windc = windchill( $F, $Self->{windspeedmph} );
-	    # TODO need to change from int to round
             my $Windcc = convert_f_to_c( $Windc );
 	    $Windc = round($Windc);
 	    $Windcc = round($Windcc);
@@ -717,7 +715,6 @@ sub decode {
             $Self->{heat_index_f}      = $Heati;
             $Self->{windchill_c}       = $Windcc;
             $Self->{windchill_f}       = $Windc;
-
         }
 
  #------------------------------------------------------------------------------
@@ -731,18 +728,17 @@ sub decode {
             my $Part2 = substr( $Line, 2, 4 );
             $Self->{pressure_inhg} = "$Part1.$Part2";
 
-	    # TODO need to change from int to round
-            my $mb   = int( $Self->{pressure_inhg} * 33.8639 );
-	    # TODO need to change from int to round
-            my $mmHg = int( $Self->{pressure_inhg} * 25.4 );
+            my $mb   = $Self->{pressure_inhg} * 33.8639;
+            my $mmHg = $Self->{pressure_inhg} * 25.4;
             my $lbin = ( $Self->{pressure_inhg} * 0.491154 );
             my $kgcm = ( $Self->{pressure_inhg} * 0.0345316 );
+            $mb = round($mb);
+            $mmHg = round($mmHg);
 
             $Self->{pressure_mb}   = $mb;
             $Self->{pressure_mmhg} = $mmHg;
             $Self->{pressure_lbin} = $lbin;
             $Self->{pressure_kgcm} = $kgcm;
-
         }
 
  #------------------------------------------------------------------------------
@@ -756,15 +752,14 @@ sub decode {
 
             my $inhg = ( $Self->{pressure_mb} * 0.02953 );
             $Self->{pressure_inhg} = sprintf( "%.2f", $inhg );
-	    # TODO need to change from int to round
-            my $mmHg = int( $Self->{pressure_inhg} * 25.4 );
+            my $mmHg = $Self->{pressure_inhg} * 25.4;
             my $lbin = ( $Self->{pressure_inhg} * 0.491154 );
             my $kgcm = ( $Self->{pressure_inhg} * 0.0345316 );
+            $mmHg = round($mmHg);
 
             $Self->{pressure_mmhg} = $mmHg;
             $Self->{pressure_lbin} = $lbin;
             $Self->{pressure_kgcm} = $kgcm;
-
         }
 
  #------------------------------------------------------------------------------
@@ -831,12 +826,10 @@ sub decode {
 
                 $Self->{slp_inhg} = ( $Remark * 0.0295300 );
                 $Self->{slp_inhg} = substr( $Self->{slp_inhg}, 0, 5 );
-	        # TODO need to change from int to round
-                $Self->{slp_mmhg} = int( $Remark * 0.750062 );
+                $Self->{slp_mmhg} = round( $Remark * 0.750062 );
                 $Self->{slp_lbin} = ( $Remark * 0.0145038 );
                 $Self->{slp_kgcm} = ( $Remark * 0.00101972 );
-	        # TODO need to change from int to round
-                $Self->{slp_mb}   = int($Remark);
+                $Self->{slp_mb}   = round($Remark);
 	    }
 
  #------------------------------------------------------------------------------

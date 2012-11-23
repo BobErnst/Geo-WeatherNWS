@@ -7,7 +7,9 @@ Revision history for Perl extension Geo::WeatherNWS.
     - Windchill is now returned as undefined for temperatures above 50 F or
       wind speeds below 4 mph.
     - The knots to mph conversion is slightly different.
-    - We now round results instead of truncating them to integers.
+    - The distance conversion is slightly different.
+    - We now round results instead of truncating them to integers, which
+      will provide slightly different answers in some cases.
 
 1.041 Wed Nov 14 22:00:00 2012
     - Minor changes: removed unneeded /d after tr,
