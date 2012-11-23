@@ -35,7 +35,7 @@ our $VERSION = '1.05';
 
 #------------------------------------------------------------------------------
 # Round function
-# Should use Math::Round instead but that adds another dependency
+# Using Math::Round would add another dependency
 #------------------------------------------------------------------------------
 
 sub round {
@@ -477,9 +477,7 @@ sub decode {
             }
 
 	    # TODO need to change from int to round
-            #my $MPH  = int( $Windspeedkts / 0.868391 );
             my $MPH  = int( convert_kts_to_mph($Windspeedkts) );
-	    # TODO need to change from int to round
             my $GMPH = int( convert_kts_to_mph($Windgustkts) );
 
             $Self->{windspeedkts} = $Windspeedkts;
