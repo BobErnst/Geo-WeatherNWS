@@ -148,6 +148,20 @@ sub convert_kts_to_mph {
 }
 
 #------------------------------------------------------------------------------
+# Convert miles to kilometers
+#------------------------------------------------------------------------------
+
+sub convert_miles_to_km {
+    my $miles = shift;
+    my $km;
+
+    if (defined $miles) {
+        $km = $miles * 1.609344;
+    }
+    return $km;
+}
+
+#------------------------------------------------------------------------------
 # Lets create a new self
 #------------------------------------------------------------------------------
 
@@ -493,10 +507,9 @@ sub decode {
                 $Line = $Splitter[0] / $Splitter[1];
             }
 
-	    # TODO need to change from int to round
-            my $Viskm = int( $Line * 1.6 );
-            $Self->{visibility_mi} = $Line;
-            $Self->{visibility_km} = $Viskm;
+            my $Viskm = convert_miles_to_km( $Line );
+            $Self->{visibility_mi} = round($Line);
+            $Self->{visibility_km} = round($Viskm);
         }
 
  #------------------------------------------------------------------------------
