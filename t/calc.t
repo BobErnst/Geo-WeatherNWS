@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 28;
+use Test::More tests => 29;
 use Geo::WeatherNWS;
 
 # Test the supporting calculations
@@ -58,6 +58,8 @@ is( Geo::WeatherNWS::round( Geo::WeatherNWS::heat_index( 100, 60 ) ),
 is( Geo::WeatherNWS::convert_kts_to_mph(0), 0, 'mph for calm wind' );
 is( Geo::WeatherNWS::round( Geo::WeatherNWS::convert_kts_to_mph(50) ),
     58, 'mph for 50 kts' );
+is( Geo::WeatherNWS::round( Geo::WeatherNWS::convert_kts_to_kmh(50) ),
+    93, 'kmh for 50 kts' );
 
 # Distance
 is( Geo::WeatherNWS::round( Geo::WeatherNWS::convert_miles_to_km(10) ),

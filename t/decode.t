@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 69;
+use Test::More tests => 73;
 use Geo::WeatherNWS;
 
 sub num_close {
@@ -42,8 +42,10 @@ is( $decode1->{winddirtext},       'Calm',   'decoded wind direction' );
 is( $decode1->{winddir},           0,        'decoded wind dir' );
 is( $decode1->{windgustkts},       0,        'decoded wind gust knots' );
 is( $decode1->{windgustmph},       0,        'decoded wind gust mph' );
+is( $decode1->{windgustkmh},       0,        'decoded wind gust kmh' );
 is( $decode1->{windspeedkts},      0,        'decoded wind speed knots' );
 is( $decode1->{windspeedmph},      0,        'decoded wind speed mph' );
+is( $decode1->{windspeedkmh},      0,        'decoded wind speed kmh' );
 
 ok( num_close( $decode1->{pressure_inhg}, 29.83 ),
     'decoded pressure inches Hg' );
@@ -97,8 +99,10 @@ is( $decode2->{winddirtext},   'North', 'decoded wind direction' );
 is( $decode2->{winddir},       20,      'decoded wind dir' );
 is( $decode2->{windgustkts},   0,       'decoded wind gust knots' );
 is( $decode2->{windgustmph},   0,       'decoded wind gust mph' );
+is( $decode2->{windgustkmh},   0,       'decoded wind gust kmh' );
 is( $decode2->{windspeedkts},  3,       'decoded wind speed knots' );
 is( $decode2->{windspeedmph},  3,       'decoded wind speed mph' );
+is( $decode2->{windspeedkmh},  6,       'decoded wind speed kmh' );
 
 ok( num_close( $decode2->{pressure_inhg}, 29.91 ),
     'decoded pressure inches Hg' );

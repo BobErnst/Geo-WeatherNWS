@@ -153,6 +153,20 @@ sub convert_kts_to_mph {
 }
 
 #------------------------------------------------------------------------------
+# Convert wind speed from nautical miles per hour to kilometers per hour
+#------------------------------------------------------------------------------
+
+sub convert_kts_to_kmh {
+    my $knots = shift;
+    my $kmh;
+
+    if (defined $knots) {
+        $kmh = $knots * 1.852;
+    }
+    return $kmh;
+}
+
+#------------------------------------------------------------------------------
 # Convert miles to kilometers
 #------------------------------------------------------------------------------
 
@@ -485,12 +499,16 @@ sub decode {
 
             my $MPH  = round( convert_kts_to_mph($Windspeedkts) );
             my $GMPH = round( convert_kts_to_mph($Windgustkts) );
+            my $KMH  = round( convert_kts_to_kmh($Windspeedkts) );
+            my $GKMH = round( convert_kts_to_kmh($Windgustkts) );
 
             $Self->{windspeedkts} = $Windspeedkts;
             $Self->{windgustkts}  = $Windgustkts;
             $Self->{windspeedkts} = $Self->{windspeedkts} - 0;
             $Self->{windspeedmph} = $MPH;
+            $Self->{windspeedkmh} = $KMH;
             $Self->{windgustmph}  = $GMPH;
+            $Self->{windgustkmh}  = $GKMH;
             $Self->{winddirtext}  = $Winddirtxt;
             $Self->{winddir}      = $Winddir;
             $Self->{winddir}      = $Self->{winddir} - 0;
@@ -1098,11 +1116,13 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   These are the returned values specific to wind:
 
   $Report->{windspeedmph}       # Wind Speed (in mph)
-  $Report->{windspeedkts}       # Wind Speed (in kts)
+  $Report->{windspeedkts}       # Wind Speed (in knots)
+  $Report->{windspeedkmh}       # Wind Speed (in km/h)
   $Report->{winddir}            # Wind Direction (in degrees)
   $Report->{winddirtext}        # Wind Direction (text version)
   $Report->{windgustmph}        # Wind Gusts (mph)
-  $Report->{windgustkts}        # Wind Gusts (kts)
+  $Report->{windgustkts}        # Wind Gusts (knots)
+  $Report->{windgustkmh}        # Wind Gusts (km/h)
 
   These are the retunred values specific to temperature and
   humidity:
