@@ -17,6 +17,7 @@ package Geo::WeatherNWS;
 #                                    only calculate windchill for proper range,
 #                                    "ptemerature" is now spelled "ptemperature"
 #				     fixed handling of condition text
+#                                    relax ICAO naming rules
 #                                    - Bob
 #
 #
@@ -512,13 +513,14 @@ sub decode {
 
 	$column++;
 
-        if ( ( $Line =~ /^([A-Z][A-Z][A-Z][A-Z])/ ) &&
+        if ( ( $Line =~ /^([A-Z][A-Z0-9][A-Z0-9][A-Z0-9])/ ) &&
 	     ( $column == 3 ) ) {
 	    # The ICAO code should always be in the third column.
 	    # (Before we added this check, we'd get values like
 	    # AUTO, TSRA, FZFG being treated as the ICAO code.)
 	    # There was a check for "AUTO" before, for now
 	    # we'll add an extra check for that value.
+	    # We also allow the last three characters to be digits.
             croak "Unexpected value AUTO for ICAO code" if $Line eq "AUTO";
             $Self->{code} = $Line;
         }
@@ -939,7 +941,7 @@ sub decode {
  #------------------------------------------------------------------------------
 
             elsif ( $Remark =~ /^T[0-9]/ ) {
-                $Self->{ptemerature} = $Remark;
+                $Self->{ptemperature} = $Remark;
             }
         }
     }
