@@ -905,35 +905,7 @@ sub decode {
  # Event beginning or ending
  #------------------------------------------------------------------------------
 
-            elsif (( $Line =~ /^BRB/ )
-                || ( $Line =~ /^TSB/ )
-                || ( $Line =~ /^MIB/ )
-                || ( $Line =~ /^PRB/ )
-                || ( $Line =~ /^BCB/ )
-                || ( $Line =~ /^DRB/ )
-                || ( $Line =~ /^BLB/ )
-                || ( $Line =~ /^SHB/ )
-                || ( $Line =~ /^FZB/ )
-                || ( $Line =~ /^DZB/ )
-                || ( $Line =~ /^RAB/ )
-                || ( $Line =~ /^SNB/ )
-                || ( $Line =~ /^SGB/ )
-                || ( $Line =~ /^ICB/ )
-                || ( $Line =~ /^PEB/ )
-                || ( $Line =~ /^GRB/ )
-                || ( $Line =~ /^GSB/ )
-                || ( $Line =~ /^UPB/ )
-                || ( $Line =~ /^FGB/ )
-                || ( $Line =~ /^FUB/ )
-                || ( $Line =~ /^VAB/ )
-                || ( $Line =~ /^DUB/ )
-                || ( $Line =~ /^SAB/ )
-                || ( $Line =~ /^HZB/ )
-                || ( $Line =~ /^PYB/ )
-                || ( $Line =~ /^POB/ )
-                || ( $Line =~ /^SQB/ )
-                || ( $Line =~ /^FCB/ )
-                || ( $Line =~ /^SSB/ ) )
+            elsif ( $Line =~ /^(BRB|TSB|MIB|PRB|BCB|DRB|BLB|SHB|FZB|DZB|RAB|SNB|SGB|ICB|PEB|GRB|GSB|UPB|FGB|FUB|VAB|DUB|SAB|HZB|PYB|POB|SQB|FCB|SSB)/ )
             {
                 $Self->{eventbe} = $Remark;
             }
