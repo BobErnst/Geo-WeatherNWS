@@ -517,11 +517,13 @@ sub decode {
 	     ( $column == 3 ) ) {
 	    # The ICAO code should always be in the third column.
 	    # (Before we added this check, we'd get values like
-	    # AUTO, TSRA, FZFG being treated as the ICAO code.)
-	    # There was a check for "AUTO" before, for now
-	    # we'll add an extra check for that value.
+	    # TSRA or FZFG being treated as the ICAO code.)
 	    # We also allow the last three characters to be digits.
+
+	    # There was a check for "AUTO" above before, for now
+	    # we'll add an extra check for that value.
             croak "Unexpected value AUTO for ICAO code" if $Line eq "AUTO";
+
             $Self->{code} = $Line;
         }
 
