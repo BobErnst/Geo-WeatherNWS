@@ -10,8 +10,10 @@ Revision history for Perl extension Geo::WeatherNWS.
     - The distance conversion is slightly different.
     - We now round results instead of truncating them to integers, which
       will provide slightly different answers in some cases.
+    - The value "ptemerature" is now spelled "ptemperature"
     - Incorporate some changes provided by Guenter Knauf
       Added wind speed in kmh
+    - Fix bug for handling conditions without modifiers
 
 1.041 Wed Nov 14 22:00:00 2012
     - Minor changes: removed unneeded /d after tr,

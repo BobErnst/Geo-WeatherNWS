@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 73;
+use Test::More tests => 97;
 use Geo::WeatherNWS;
 
 sub num_close {
@@ -12,7 +12,10 @@ sub num_close {
     return ( abs( $a - $b ) < 0.0001 );
 }
 
+#------------------------------------------------------------
 # Test decoding a static observation (no network required)
+#------------------------------------------------------------
+
 my $report1 = new_ok('Geo::WeatherNWS');
 my $obs1 =
   "2002/02/25 12:00 NSFA 251200Z 00000KT 50KM FEW024 SCT150 27/25 Q1010";
@@ -61,6 +64,10 @@ is(
 );
 is( $decode1->{password}, 'weather@cpan.org', 'expected password' );
 is( $decode1->{username}, 'anonymous',        'expected username' );
+
+#------------------------------------------------------------
+# Another example
+#------------------------------------------------------------
 
 my $report2 = Geo::WeatherNWS::new();
 ok( defined($report2), 'Created second object' );
@@ -111,3 +118,47 @@ ok( num_close( $decode2->{pressure_kgcm}, 1.032840156 ),
 ok( num_close( $decode2->{pressure_lbin}, 14.69041614 ),
     'decoded pressure lb in' );
 
+#------------------------------------------------------------
+# Test for Bug #14632 from dstroma
+# 
+# "Conditions do not get parsed if there is no intensity modified,
+# ie -TSRA works, +TSRA works, but TSRA doesn't."
+#------------------------------------------------------------
+
+my $obs3_start = "2012/11/24 00:20 KPIT 091955Z COR 22015G25KT 3/4SM R28L/2600FT ";
+my $obs3_end = " OVC010CB 18/16 A2992 RMK SLP045 T01820159";
+my @obs3_middle = ('TSRA','-TSRA','+TSRA');
+my @obs3_description = ('Thunderstorm Rain', 'Light Thunderstorm Rain', 'Heavy Thunderstorm Rain');
+for (my $obs3_case=0; $obs3_case<=$#obs3_middle; $obs3_case++) {
+    my $abbr3 = $obs3_middle[$obs3_case];
+    my $expected3 = $obs3_description[$obs3_case];
+    my $obs3 = $obs3_start . $abbr3 . $obs3_end;
+    my $report3 = Geo::WeatherNWS::new();
+    my $decode3 = $report3->decodeobs($obs3);
+    # Check for the ICAO here because unmodified TSRA was put there in error.
+    is($decode3->{code}, 'KPIT', "code for $abbr3");
+    is($decode3->{conditionstext}, $expected3, "conditionstext for $abbr3");
+    is($decode3->{conditions1}, 'Thunderstorm', "conditions1 for $abbr3");
+    is($decode3->{conditions2}, 'Rain', "conditions2 for $abbr3");
+}
+
+#------------------------------------------------------------
+# Make sure freezing fog is handled correctly
+#------------------------------------------------------------
+
+my $obs4_start = "2012/11/24 00:20 KPIT 091955Z COR 22015G25KT 3/4SM R28L/2600FT ";
+my $obs4_end = " OVC010CB 18/16 A2992 RMK SLP045 T01820159";
+my @obs4_middle = ('FZFG','-FZFG','+FZFG');
+my @obs4_description = ('Freezing Fog', 'Light Freezing Fog', 'Heavy Freezing Fog');
+for (my $obs4_case=0; $obs4_case<=$#obs4_middle; $obs4_case++) {
+    my $abbr4 = $obs4_middle[$obs4_case];
+    my $expected4 = $obs4_description[$obs4_case];
+    my $obs4 = $obs4_start . $abbr4 . $obs4_end;
+    my $report4 = Geo::WeatherNWS::new();
+    my $decode4 = $report4->decodeobs($obs4);
+    # Check for the ICAO here because unmodified FZFG was put there in error.
+    is($decode4->{code}, 'KPIT', "code for $abbr4");
+    is($decode4->{conditionstext}, $expected4, "conditionstext for $abbr4");
+    is($decode4->{conditions1}, 'Freezing', "conditions1 for $abbr4");
+    is($decode4->{conditions2}, 'Fog', "conditions2 for $abbr4");
+}

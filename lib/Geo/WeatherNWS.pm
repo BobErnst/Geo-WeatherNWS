@@ -14,7 +14,9 @@ package Geo::WeatherNWS;
 #                 22 November 2012 - fix issues with undefined values,
 #                                    change some conversion constants,
 #                                    round instead of truncate results,
-#                                    only calculate windchill for proper range.
+#                                    only calculate windchill for proper range,
+#                                    "ptemerature" is now spelled "ptemperature"
+#				     fixed handling of condition text
 #                                    - Bob
 #
 #
@@ -178,6 +180,132 @@ sub convert_miles_to_km {
         $km = $miles * 1.609344;
     }
     return $km;
+}
+
+#------------------------------------------------------------------------------
+# Translate Weather into readable Conditions Text
+#
+# Reference is WMO Code Table 4678
+#------------------------------------------------------------------------------
+
+sub translate_weather {
+    my $coded = shift;
+    my $old_conditionstext = shift;
+    my $old_conditions1 = shift;
+    my $old_conditions2 = shift;
+    my ($conditionstext, $conditions1, $conditions2, $intensity);
+
+    # We use %Converter to translate 2-letter codes into text
+
+    my %Converter = (
+        BR => 'Mist',
+        TS => 'Thunderstorm',
+        MI => 'Shallow',
+        PR => 'Partial',
+        BC => 'Patches',
+        DR => 'Low Drifting',
+        BL => 'Blowing',
+        SH => 'Shower',
+        FZ => 'Freezing',
+        DZ => 'Drizzle',
+        RA => 'Rain',
+        SN => 'Snow',
+        SG => 'Snow Grains',
+        IC => 'Ice Crystals',
+        PE => 'Ice Pellets',
+        PL => 'Ice Pellets',
+        GR => 'Hail',
+        GS => 'Small Hail/Snow',
+        UP => 'Unknown Precipitation',
+        FG => 'Fog',
+        FU => 'Smoke',
+        VA => 'Volcanic Ash',
+        DU => 'Widespread Dust',
+        SA => 'Sand',
+        HZ => 'Haze',
+        PY => 'Spray',
+        PO => 'Dust Devils',
+        SQ => 'Squalls',
+        FC => 'Tornado',
+        SS => 'Sandstorm'
+    );
+
+    if ( $coded =~ /^[-+]/ ) {
+	# Heavy(+) or Light(-) condition
+
+        if ( !$old_conditions1 ) {
+            my ( $Block1, $Block2 );
+            my $Modifier = substr( $coded, 0, 1 ); # +/-
+            my $Block1t  = substr( $coded, 1, 2 ); # e.g. TS
+            my $Block2t  = substr( $coded, 3, 4 ); # e.g. RA
+
+            $Block1 = $Converter{$Block1t};        # e.g. Thunderstorm
+            $conditions1 = $Block1;                # e.g. Thunderstorm
+
+            if ($Block2t) {
+                $Block2 = $Converter{$Block2t};    # e.g. Rain
+                $conditions2 = $Block2;            # e.g. Rain
+            }
+
+            if ( $Modifier =~ /^\-/ ) {
+                $Block1 = "Light $Block1";         # e.g. Light Thunderstorm
+                $intensity = "Light";
+            }
+            elsif ( $Modifier =~ /^\+/ ) {
+                $Block1 = "Heavy $Block1";         # e.g. Heavy Thunderstorm
+                $intensity = "Heavy";
+            }
+
+            if ($Block2) {
+                $Block1 = "$Block1 $Block2";       # e.g. Light Thunderstorm Rain
+            }
+
+            if ($old_conditionstext) {
+                if ( $Block1 eq "SH" ) {
+                    $conditionstext = "$Block2 of $Block1";
+                    $conditions1    = "Showers of";
+                }
+                else {
+                    $conditionstext = "$old_conditionstext and $Block1";
+                }
+            }
+            else {
+                $conditionstext = $Block1;
+            }
+        }
+    }
+    else {
+	# Moderate condition
+
+        if ( !$old_conditions1 ) {
+            my ( $Block1, $Block2 );
+            my $Block1t = substr( $coded, 0, 2 ); # e.g. TS
+            my $Block2t = substr( $coded, 2, 4 ); # e.g. RA
+
+            $Block1 = $Converter{$Block1t};       # e.g. Thunderstorm
+            $conditions1 = $Block1;               # e.g. Thunderstorm
+
+            if ($Block2t) {
+                $Block2      = $Converter{$Block2t};
+                $conditions2 = $Block2;
+		$Block1      = "$Block1 $Block2";
+            }
+
+            if ($old_conditionstext) {
+                if ( $Block1 eq "SH" ) {
+                    $conditionstext = "$Block2 of $Block1";
+                    $conditions1    = "Showers of";
+                 }
+                 else {
+                    $conditionstext = "$old_conditionstext and $Block1";
+                 }
+            }
+            else {
+                $conditionstext = $Block1;
+            }
+        }
+    }
+    return ($conditionstext, $conditions1, $conditions2, $intensity);
 }
 
 #------------------------------------------------------------------------------
@@ -372,52 +500,26 @@ sub decode {
     my $Self = shift;
     my @Cloudlevels;
 
- #------------------------------------------------------------------------------
- # We use %Converter to translate 2-letter codes into text
- #------------------------------------------------------------------------------
-
-    my %Converter = (
-        BR => 'Mist',
-        TS => 'Thunderstorm',
-        MI => 'Shallow',
-        PR => 'Partial',
-        BC => 'Patches',
-        DR => 'Low Drifting',
-        BL => 'Blowing',
-        SH => 'Shower',
-        FZ => 'Freezing',
-        DZ => 'Drizzle',
-        RA => 'Rain',
-        SN => 'Snow',
-        SG => 'Snow Grains',
-        IC => 'Ice Crystals',
-        PE => 'Ice Pellets',
-        PL => 'Ice Pellets',
-        GR => 'Hail',
-        GS => 'Small Hail/Snow',
-        UP => 'Unknown Precipitation',
-        FG => 'Fog',
-        FU => 'Smoke',
-        VA => 'Volcanic Ash',
-        DU => 'Widespread Dust',
-        SA => 'Sand',
-        HZ => 'Haze',
-        PY => 'Spray',
-        PO => 'Dust Devils',
-        SQ => 'Squalls',
-        FC => 'Tornado',
-        SS => 'Sandstorm'
-    );
-
     my @Splitter = split( /\s+/, $Self->{obs} );
 
  #------------------------------------------------------------------------------
  # Break the METAR observations down and decode
  #------------------------------------------------------------------------------
 
+    my $column = 0;
+
     foreach my $Line (@Splitter) {
 
-        if ( ( $Line =~ /^([A-Z][A-Z][A-Z][A-Z])/ ) && ( $Line ne "AUTO" ) ) {
+	$column++;
+
+        if ( ( $Line =~ /^([A-Z][A-Z][A-Z][A-Z])/ ) &&
+	     ( $column == 3 ) ) {
+	    # The ICAO code should always be in the third column.
+	    # (Before we added this check, we'd get values like
+	    # AUTO, TSRA, FZFG being treated as the ICAO code.)
+	    # There was a check for "AUTO" before, for now
+	    # we'll add an extra check for that value.
+            croak "Unexpected value AUTO for ICAO code" if $Line eq "AUTO";
             $Self->{code} = $Line;
         }
 
@@ -539,112 +641,20 @@ sub decode {
  # Current Conditions
  #------------------------------------------------------------------------------
 
-        elsif (( $Line =~ /BR([A-Z])*/ )
-            || ( $Line =~ /[\+\-]VC([A-Z])*/ )
+        elsif (
+            ( $Line =~ /
+                (BR|TS|MI|PR|BC|DR|BL|SH|FZ|DZ|RA|SN|SG|IC|PE|PL|GR|GS|UP|FG|FU|VA|DU|SA|HZ|PY|PO|SQ|FC|SS)
+	        ([A-Z])*
+	        /x)
             || ( $Line =~ /^VC([A-Z])*/ )
-            || ( $Line =~ /TS([A-Z])*/ )
-            || ( $Line =~ /MI([A-Z])*/ )
-            || ( $Line =~ /PR([A-Z])*/ )
-            || ( $Line =~ /BC([A-Z])*/ )
-            || ( $Line =~ /DR([A-Z])*/ )
-            || ( $Line =~ /BL([A-Z])*/ )
-            || ( $Line =~ /SH([A-Z])*/ )
-            || ( $Line =~ /FZ([A-Z])*/ )
-            || ( $Line =~ /DZ([A-Z])*/ )
-            || ( $Line =~ /RA([A-Z])*/ )
-            || ( $Line =~ /SN([A-Z])*/ )
-            || ( $Line =~ /SG([A-Z])*/ )
-            || ( $Line =~ /IC([A-Z])*/ )
-            || ( $Line =~ /PE([A-Z])*/ )
-            || ( $Line =~ /PL([A-Z])*/ )
-            || ( $Line =~ /GR([A-Z])*/ )
-            || ( $Line =~ /GS([A-Z])*/ )
-            || ( $Line =~ /UP([A-Z])*/ )
-            || ( $Line =~ /FG([A-Z])*/ )
-            || ( $Line =~ /FU([A-Z])*/ )
-            || ( $Line =~ /VA([A-Z])*/ )
-            || ( $Line =~ /DU([A-Z])*/ )
-            || ( $Line =~ /SA([A-Z])*/ )
-            || ( $Line =~ /HZ([A-Z])*/ )
-            || ( $Line =~ /PY([A-Z])*/ )
-            || ( $Line =~ /PO([A-Z])*/ )
-            || ( $Line =~ /SQ([A-Z])*/ )
-            || ( $Line =~ /FC([A-Z])*/ )
-            || ( $Line =~ /SS([A-Z])*/ ) )
+            || ( $Line =~ /[\+\-]VC([A-Z])*/ ) )
         {
-            my $Old = $Self->{conditionstext};
-
-            if ( ( $Line =~ /^\-/ ) || ( $Line =~ /^\+/ ) ) {
-                if ( !$Self->{conditions1} ) {
-                    my ( $Block1, $Block2 );
-                    my $Modifier = substr( $Line, 0, 1 );
-                    my $Block1t  = substr( $Line, 1, 2 );
-                    my $Block2t  = substr( $Line, 3, 4 );
-
-                    $Block1 = $Converter{$Block1t};
-                    $Self->{conditions1} = $Block1;
-
-                    if ($Block2t) {
-                        $Block2 = $Converter{$Block2t};
-                        $Self->{conditions2} = $Block2;
-                    }
-
-                    if ( $Modifier =~ /^\-/ ) {
-                        $Block1 = "Light $Block1";
-                        $Self->{intensity} = "Light";
-                    }
-                    elsif ( $Modifier =~ /^\+/ ) {
-                        $Block1 = "Heavy $Block1";
-                        $Self->{intensity} = "Heavy";
-                    }
-
-                    if ($Block2) {
-                        $Block1 = "$Block1 $Block2";
-                    }
-
-                    if ($Old) {
-                        if ( $Block1 eq "SH" ) {
-                            $Self->{conditionstext} = "$Block2 of $Block1";
-                            $Self->{conditions1}    = "Showers of";
-                        }
-                        else {
-                            $Self->{conditionstext} = "$Old and $Block1";
-                        }
-                    }
-                    else {
-                        $Self->{conditionstext} = $Block1;
-                    }
-                }
-            }
-            else {
-                if ( !$Self->{conditions1} ) {
-                    my ( $Block1, $Block2 );
-                    my $Block1t = substr( $Line, 0, 2 );
-                    my $Block2t = substr( $Line, 2, 4 );
-
-                    $Block1 = $Converter{$Block1t};
-                    $Self->{conditions1} = $Block1;
-
-                    if ($Block2) {
-                        $Block2              = $Converter{$Block2t};
-                        $Self->{conditions2} = $Block2;
-                        $Block1              = "$Block1 $Block2";
-                    }
-
-                    if ($Old) {
-                        if ( $Block1 eq "SH" ) {
-                            $Self->{conditionstext} = "$Block2 of $Block1";
-                            $Self->{conditions1}    = "Showers of";
-                        }
-                        else {
-                            $Self->{conditionstext} = "$Old and $Block1";
-                        }
-                    }
-                    else {
-                        $Self->{conditionstext} = $Block1;
-                    }
-                }
-            }
+            my ($conditionstext, $conditions1, $conditions2, $intensity) = 
+	        translate_weather($Line, $Self->{conditionstext}, $Self->{conditions1},$Self->{conditions2});
+            $Self->{conditionstext} = $conditionstext if defined $conditionstext;
+	    $Self->{conditions1} = $conditions1 if defined $conditions1;
+	    $Self->{conditions2} = $conditions2 if defined $conditions2;
+	    $Self->{intensity} = $intensity if defined $intensity;
         }
 
  #------------------------------------------------------------------------------
@@ -1097,7 +1107,7 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   to display the information.  Some of the returned info is about
   the report itself, such as:
 
-  $Report->{day}                # Report Date
+  $Report->{day}                # Report day of month
   $Report->{time}               # Report Time
   $Report->{station_type}       # Station Type (auto or manual)
   $Report->{obs}                # The Observation Text (encoded)
@@ -1163,7 +1173,7 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   experimental, and these names could change in future releases.
 
   $Report->{remark_arrayref} # Arrayref holding all remarks
-  $Report->{ptemerature}     # Precise Tepmerature Reading
+  $Report->{ptemperature}     # Precise Temperature Reading
   $Report->{storm}           # Thunderstorm stats
   $Report->{slp_inhg}        # Air Pressure at Sea Level (in mercury)
   $Report->{slp_mmhg}        # Air Pressure at Sea Level (mm mercury)

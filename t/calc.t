@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 45;
 use Geo::WeatherNWS;
 
 # Test the supporting calculations
@@ -62,6 +62,34 @@ is( Geo::WeatherNWS::round( Geo::WeatherNWS::convert_kts_to_kmh(50) ),
     93, 'kmh for 50 kts' );
 
 # Distance
+
 is( Geo::WeatherNWS::round( Geo::WeatherNWS::convert_miles_to_km(10) ),
     16, '10 miles to km' );
+
+# Translate Present Weather into readable Conditions Text
+
+my ($conditionstextA, $conditions1A, $conditions2A, $intensityA) = Geo::WeatherNWS::translate_weather("-TSRA");
+is ($conditionstextA, 'Light Thunderstorm Rain', 'conditions text for -TSRA');
+is ($conditions1A, 'Thunderstorm', 'condition1 for -TSRA');
+is ($conditions2A, 'Rain', 'condition2 for -TSRA');
+is ($intensityA, 'Light', 'intensity text for -TSRA');
+
+my ($conditionstextB, $conditions1B, $conditions2B, $intensityB) = Geo::WeatherNWS::translate_weather("+FZFG");
+is ($conditionstextB, 'Heavy Freezing Fog', 'conditions text for +FZFG');
+is ($conditions1B, 'Freezing', 'condition1 for +FZFG');
+is ($conditions2B, 'Fog', 'condition2 for +FZFG');
+is ($intensityB, 'Heavy', 'intensity text for +FZFG');
+
+my ($conditionstextC, $conditions1C, $conditions2C, $intensityC) = Geo::WeatherNWS::translate_weather("DRSN");
+is ($conditionstextC, 'Low Drifting Snow', 'conditions text for DRSN');
+is ($conditions1C, 'Low Drifting', 'condition1 for DRSN');
+is ($conditions2C, 'Snow', 'condition2 for DRSN');
+is ($intensityC, undef, 'intensity text for DRSN'); # moderate is undefined
+
+my ($conditionstextD, $conditions1D, $conditions2D, $intensityD) = Geo::WeatherNWS::translate_weather("SHGR");
+is ($conditionstextD, 'Shower Hail', 'conditions text for SHGR');
+is ($conditions1D, 'Shower', 'condition1 for SHGR');
+is ($conditions2D, 'Hail', 'condition2 for SHGR');
+is ($intensityD, undef, 'intensity text for SHGR'); # moderate is undefined
+
 
