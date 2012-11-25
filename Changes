@@ -1,6 +1,8 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
 1.05
+    - Address bug 14632 (METAR Decoding) from dstroma.
+    - Address bug 27513 (Geo-WeatherNWS returns wrong station code) from Guenter Knauf.
     - Changes to deal with undefined values used for calculations to avoid warnings.
       To make it easier to check for undefined values, some calculations were moved
       into functions.
@@ -11,10 +13,10 @@ Revision history for Perl extension Geo::WeatherNWS.
     - We now round results instead of truncating them to integers, which
       will provide slightly different answers in some cases.
     - The value "ptemerature" is now spelled "ptemperature"
-    - Incorporate some changes provided by Guenter Knauf
       Added wind speed in kmh
     - Fix bug for handling conditions without modifiers
     - Relax rules for ICAO names to allow numbers as well as letters for the last 3 characters
+    - Change ICAO website
 
 1.041 Wed Nov 14 22:00:00 2012
     - Minor changes: removed unneeded /d after tr,

@@ -11,13 +11,17 @@ package Geo::WeatherNWS;
 #                 14 November 2012 - removed unneeded /d after tr,
 #                                    make network tests optional,
 #                                    check status of opens - Bob
-#                 22 November 2012 - fix issues with undefined values,
+#                 25 November 2012 - Address bug 14632 (METAR Decoding) from dstroma
+#                 		     Address bug 27513 (Geo-WeatherNWS returns wrong station code)
+#                 		     from Guenter Knauf
+#                                    fix issues with undefined values,
 #                                    change some conversion constants,
 #                                    round instead of truncate results,
 #                                    only calculate windchill for proper range,
 #                                    "ptemerature" is now spelled "ptemperature"
 #				     fixed handling of condition text
 #                                    relax ICAO naming rules
+#				     change ICAO website
 #                                    - Bob
 #
 #
@@ -1031,10 +1035,15 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   sites via http. When the site you are getting your weather data
   from changes format, then you end up having to re-code your parsing
   program.  With the weather module, all you need is a four-letter
-  station code to get the most recent weather observations.  If you
-  do not know what the station code is for your area, check the site
-  at http://205.156.54.206/oso/siteloc.shtml to start your search.
+  station code to get the most recent weather observations.
 
+  If you do not know what the station code is for your area,
+  these sites might help your search:
+
+    http://en.wikipedia.org/wiki/List_of_airports_by_ICAO_code
+
+    http://www.aircharterguide.com/Airports 
+                 		     
   Since this module uses the NWS METAR Observations, you can get
   weather reports from anywhere in the world that has a four-letter
   station code.
