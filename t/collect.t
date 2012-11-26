@@ -5,11 +5,11 @@ use warnings;
 use Test::More tests => 3;
 use Geo::WeatherNWS;
 
-my $report_a = new_ok('Geo::WeatherNWS');
 
 SKIP: {
-    skip "network dependent test", 2 unless $ENV{TEST_NETWORK};
+    skip "network dependent test", 3 unless $ENV{TEST_NETWORK};
 
+    my $report_a = Geo::WeatherNWS::new();
     # Test connecting to bad server
     my $bogus_site = "bogus-site.example.com";    # doesn't exist
     $report_a->setservername($bogus_site);
@@ -21,5 +21,9 @@ SKIP: {
         "Cannot connect to $bogus_site: Net::FTP: Bad hostname '$bogus_site'",
         'error text set for conditions'
     );
+
+    my $report_b = Geo::WeatherNWS::new();
+    $report_b->getreport('kstl');
+    is($report_b->{code}, 'KSTL', 'icao code from ftp report');
 }
 

@@ -17,6 +17,8 @@ Revision history for Perl extension Geo::WeatherNWS.
     - Fix bug for handling conditions without modifiers
     - Relax rules for ICAO names to allow numbers as well as letters for the last 3 characters
     - Change ICAO website
+    - Change http web site from weather.noaa.gov (which is being phased out)
+      to www.aviationweather.gov
 
 1.041 Wed Nov 14 22:00:00 2012
     - Minor changes: removed unneeded /d after tr,

@@ -14,14 +14,16 @@ package Geo::WeatherNWS;
 #                 25 November 2012 - Address bug 14632 (METAR Decoding) from dstroma
 #                 		     Address bug 27513 (Geo-WeatherNWS returns wrong station code)
 #                 		     from Guenter Knauf
-#                                    fix issues with undefined values,
-#                                    change some conversion constants,
-#                                    round instead of truncate results,
-#                                    only calculate windchill for proper range,
+#                                    Fix issues with undefined values,
+#                                    Change some conversion constants,
+#                                    Round instead of truncate results,
+#                                    Only calculate windchill for proper range,
 #                                    "ptemerature" is now spelled "ptemperature"
-#				     fixed handling of condition text
-#                                    relax ICAO naming rules
-#				     change ICAO website
+#				     Fixed handling of condition text
+#                                    Relax ICAO naming rules
+#				     Change ICAO website
+#				     Change http web site from weather.noaa.gov
+#                                    to www.aviationweather.gov, and change parsing to match.
 #                                    - Bob
 #
 #
@@ -385,7 +387,9 @@ sub settimeout {
 sub getreporthttp {
     my $Self = shift;
     my $Code = shift;
-    $Self->{http} = "http://weather.noaa.gov/cgi-bin/mgetmetar.pl?cccc=$Code";
+    # The old site was: http://weather.noaa.gov/cgi-bin/mgetmetar.pl?cccc=$Code
+    $Self->{http} = 
+        'http://www.aviationweather.gov/adds/metars/?station_ids=' . $Code . '&chk_metars=on&hoursStr=most+recent+only';
     my $Ret = &getreport( $Self, $Code );
     return $Ret;
 }
@@ -416,9 +420,19 @@ sub getreport {
         if ( $Res->is_success ) {
             my @Lines = split( /\n/, $Res->content );
             foreach my $Line (@Lines) {
-                if ( $Line =~ /^([A-Z][A-Z][A-Z][A-Z])/ ) {
-                    $Self->{obs} = $Line;
-                    last;
+		if ( $Line =~ /<(TITLE|H1|H2)>/ ) {
+			# ignore
+		}
+		else {
+		    # Remove HTML elements.
+		    # (This isn't very robust, but it gets the job done for now.)
+		    $Line =~ s/<[^>]*>//g;
+
+		    # If the line starts with an ICAO, then the line is an observation (we hope)
+                    if ( $Line =~ /^[A-Z][A-Z0-9]{3}\s/ ) {
+                        $Self->{obs} = $Line;
+                        last;
+                    }
                 }
             }
         }
@@ -511,24 +525,33 @@ sub decode {
  # Break the METAR observations down and decode
  #------------------------------------------------------------------------------
 
+    my $have_icao_code = 0;
     my $column = 0;
 
     foreach my $Line (@Splitter) {
+        $column++;
 
-	$column++;
+ #------------------------------------------------------------------------------
+ # ICAO station code
+ #------------------------------------------------------------------------------
 
-        if ( ( $Line =~ /^([A-Z][A-Z0-9][A-Z0-9][A-Z0-9])/ ) &&
-	     ( $column == 3 ) ) {
-	    # The ICAO code should always be in the third column.
-	    # (Before we added this check, we'd get values like
-	    # TSRA or FZFG being treated as the ICAO code.)
+        if ( ( $Line =~ /^([A-Z][A-Z0-9]{3})/ ) &&
+	     ( !$have_icao_code ) ) {
+	    # Use the first value that looks like the ICAO code.
+	    # This should either be the first item, or
+	    # the third item if there is a leading date and time.
+	    # (Before we checked have_icao_code, we'd get values
+	    # like TSRA or FZFG later in the observation being treated
+	    # as the ICAO code.)
 	    # We also allow the last three characters to be digits.
 
 	    # There was a check for "AUTO" above before, for now
-	    # we'll add an extra check for that value.
+	    # we'll add an extra check for that value. (AUTO should
+	    # show up in the fifth column.)
             croak "Unexpected value AUTO for ICAO code" if $Line eq "AUTO";
 
             $Self->{code} = $Line;
+	    $have_icao_code = 1;
         }
 
  #------------------------------------------------------------------------------
@@ -763,7 +786,7 @@ sub decode {
  # Based on report (inches of mercury)
  #------------------------------------------------------------------------------
 
-        elsif ( $Line =~ /^(A[0-9][0-9][0-9][0-9])/ ) {
+        elsif ( $Line =~ /^(A[0-9]{4})/ ) {
             $Line =~ tr/[A-Z]//d;
             my $Part1 = substr( $Line, 0, 2 );
             my $Part2 = substr( $Line, 2, 4 );
@@ -787,7 +810,7 @@ sub decode {
  # Based on report (millibars)
  #------------------------------------------------------------------------------
 
-        elsif ( $Line =~ /^(Q[0-9][0-9][0-9][0-9])/ ) {
+        elsif ( $Line =~ /^(Q[0-9]{4})/ ) {
             $Line =~ tr/[A-Z]//d;
             $Self->{pressure_mb} = $Line;
 
@@ -977,7 +1000,8 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
 
   $Report->getreporthttp('kcvg');  # same as before, but use the
                                    # http method to the script at
-                                   # weather.noaa.gov
+				   # http://www.aviationweather.gov/adds/metars/
+				   # (used to be weather.noaa.gov)
 
   # Check for errors
 
