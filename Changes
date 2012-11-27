@@ -1,6 +1,6 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
-1.05
+1.05  Mon Nov 27 21:27:00 2012
     - Address bug 14632 (METAR Decoding) from dstroma.
     - Address bug 27513 (Geo-WeatherNWS returns wrong station code) from Guenter Knauf.
     - Changes to deal with undefined values used for calculations to avoid warnings.

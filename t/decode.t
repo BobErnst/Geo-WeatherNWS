@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 97;
+use Test::More tests => 99;
 use Geo::WeatherNWS;
 
 sub num_close {
@@ -49,6 +49,9 @@ is( $decode1->{windgustkmh},       0,        'decoded wind gust kmh' );
 is( $decode1->{windspeedkts},      0,        'decoded wind speed knots' );
 is( $decode1->{windspeedmph},      0,        'decoded wind speed mph' );
 is( $decode1->{windspeedkmh},      0,        'decoded wind speed kmh' );
+is( $decode1->{report_date},      '2002/02/25', 'report date' );
+is( $decode1->{report_time},      '12:00',      'report time' );
+
 
 ok( num_close( $decode1->{pressure_inhg}, 29.83 ),
     'decoded pressure inches Hg' );

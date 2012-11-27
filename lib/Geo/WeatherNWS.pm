@@ -11,7 +11,7 @@ package Geo::WeatherNWS;
 #                 14 November 2012 - removed unneeded /d after tr,
 #                                    make network tests optional,
 #                                    check status of opens - Bob
-#                 25 November 2012 - Address bug 14632 (METAR Decoding) from dstroma
+#                 27 November 2012 - Address bug 14632 (METAR Decoding) from dstroma
 #                 		     Address bug 27513 (Geo-WeatherNWS returns wrong station code)
 #                 		     from Guenter Knauf
 #                                    Fix issues with undefined values,
@@ -24,6 +24,7 @@ package Geo::WeatherNWS;
 #				     Change ICAO website
 #				     Change http web site from weather.noaa.gov
 #                                    to www.aviationweather.gov, and change parsing to match.
+#                                    Add report_date and report_time items.
 #                                    - Bob
 #
 #
@@ -530,6 +531,20 @@ sub decode {
 
     foreach my $Line (@Splitter) {
         $column++;
+
+
+ #------------------------------------------------------------------------------
+ # Report date and time
+ # These aren't always present (for example, from the http interface)
+ #------------------------------------------------------------------------------
+
+        if ( $column == 1 && $Line =~ /^\d{4}\/\d{2}\/\d{2}$/) {
+            $Self->{report_date} = $Line;
+	}
+
+        if ( $column == 2 && $Line =~ /^\d{2}:\d{2}$/) {
+            $Self->{report_time} = $Line;
+	}
 
  #------------------------------------------------------------------------------
  # ICAO station code
@@ -1122,6 +1137,11 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   $Report->{obs}                # The Observation Text (encoded)
   $Report->{code}               # The Station Code
 
+  These values might also be available.
+  (The values {day} and {time} above should always be available.)  
+  $Report->{report_date}        # Report Date
+  $Report->{report_time}        # Report Time
+
   This is the template output:
 
   $Report->{templateout}
@@ -1143,7 +1163,7 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   $Report->{windgustkts}        # Wind Gusts (knots)
   $Report->{windgustkmh}        # Wind Gusts (km/h)
 
-  These are the retunred values specific to temperature and
+  These are the returned values specific to temperature and
   humidity:
 
   $Report->{temperature_f}      # Temperature (degrees f)
