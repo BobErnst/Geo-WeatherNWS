@@ -11,7 +11,7 @@ package Geo::WeatherNWS;
 #                 14 November 2012 - removed unneeded /d after tr,
 #                                    make network tests optional,
 #                                    check status of opens - Bob
-#                 27 November 2012 - Address bug 14632 (METAR Decoding) from dstroma
+#                 26 November 2012 - Address bug 14632 (METAR Decoding) from dstroma
 #                 		     Address bug 27513 (Geo-WeatherNWS returns wrong station code)
 #                 		     from Guenter Knauf
 #                                    Fix issues with undefined values,
@@ -26,6 +26,7 @@ package Geo::WeatherNWS;
 #                                    to www.aviationweather.gov, and change parsing to match.
 #                                    Add report_date and report_time items.
 #                                    - Bob
+#                 27 November 2012 - Add POD documentation for new functions.
 #
 #
 #------------------------------------------------------------------------------
@@ -46,7 +47,7 @@ use Carp;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '1.05';
+our $VERSION = '1.051';
 
 #------------------------------------------------------------------------------
 # Round function
@@ -1263,6 +1264,48 @@ Get the report for a station using HTTP or FTP.
 =item decodeobs( $Obs )
 
 Decodeobs takes the obs in a string format and decodes them.
+
+=item convert_c_to_f ( $celsius )
+
+Convert a temperature in Celsius to Fahrenheit. 
+
+=item convert_f_to_c ( $fahrenheit )
+
+Convert a temperature in Fahrenheit to Celsius.
+
+=item convert_kts_to_kmh ( $knots )
+
+Convert a speed in knots to kilometers per hour.
+
+=item convert_kts_to_mph ( $knots )
+
+Convert a speed in knots to miles per hour.
+
+=item convert_miles_to_km ( $miles )
+
+Convert a distance in miles to kilometers.
+
+=item heat_index ( $fahrenheit, $rh )
+
+Calculate the heat index based on the temperature (in Fahrenheit) and the
+relative humidity.
+
+=item windchill ( $fahrenheit, $wind_speed_mph )
+
+Calculate the windchill based on the temperature (in Fahrenheit) and
+the wind speed (in MPH).
+
+Windchill isn't defined when the temperture is above 50 F,
+or for wind speeds under 4 MPH.
+
+=item round ( $float )
+
+Convert a floating point number to an integer by rounding.
+
+=item translate_weather ( $coded, $old_conditionstext, $old_conditons1, $old_conditions2 )
+
+Translate Weather into readable conditions text, per WMO Code Table 4678.
+This is only called internally.
 
 =item decode( )
 
