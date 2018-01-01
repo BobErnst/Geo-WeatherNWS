@@ -1,5 +1,8 @@
 Revision history for Perl extension Geo::WeatherNWS.
 
+1.054 Mon Jan  1 12:12:00 2018
+    - Switched from using POSIX module to File::Temp module
+
 1.051 Tue Mon 27 22:13:00 2012
     - Add POD documention for new functions.
 

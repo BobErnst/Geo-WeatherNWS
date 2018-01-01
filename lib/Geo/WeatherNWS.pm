@@ -27,6 +27,7 @@ package Geo::WeatherNWS;
 #                                    Add report_date and report_time items.
 #                                    - Bob
 #                 27 November 2012 - Add POD documentation for new functions.
+#                 1 January 2017 - Switched from POSIX module to File::Temp
 #
 #
 #------------------------------------------------------------------------------
@@ -47,7 +48,7 @@ use Carp;
 # Version
 #------------------------------------------------------------------------------
 
-our $VERSION = '1.051';
+our $VERSION = '1.054';
 
 #------------------------------------------------------------------------------
 # Round function
