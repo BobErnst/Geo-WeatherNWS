@@ -40,7 +40,7 @@ use strict;
 use warnings;
 use Net::FTP;
 use IO::Handle;
-use POSIX;
+use File::Temp;
 use Carp;
 
 #------------------------------------------------------------------------------
@@ -401,7 +401,11 @@ sub getreport {
     my $Station = shift;
 
     $Self->{error} = "0";
-    my $Tmpfile = POSIX::tmpnam();
+
+    my $Tmphandle = File::Temp->new();
+    my $Tmpfile = $Tmphandle->filename;
+    close $Tmphandle;
+
     my $Code    = uc($Station);
 
     if ( !$Code ) {
@@ -1088,9 +1092,7 @@ Geo::WeatherNWS - A simple way to get current weather data from the NWS.
   weather reports from anywhere in the world that has a four-letter
   station code.
 
-  This module uses the POSIX and Net::FTP modules, so you'll have to
-  make sure that everything is set up with them before you can use
-  the module.
+  This module uses the Net::FTP module, so make sure it is available.
 
   To begin:
 

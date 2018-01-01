@@ -10,7 +10,6 @@ Requirements:
 
 	Net::FTP
 	IO::Handle
-	POSIX
 	Carp
 
 Install this module in the normal way:
